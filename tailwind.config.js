@@ -5,10 +5,9 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
-    //   fontFamily: {
-    //   josefin: ["JosefinSans_400Regular"],
-    //   "josefin-bold": ["JosefinSans_700Bold"],
-    // },
+      fontFamily: {
+      lobster: ["Lobster_400Regular"],
+    },
     },
   },
   plugins: [],
