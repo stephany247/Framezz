@@ -14,7 +14,7 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.15,
         elevation: 6,
       }}
@@ -29,7 +29,7 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
           alignItems: "center",
         }}
       >
-        <Ionicons name="add" size={20} color="#fff" />
+        <Ionicons name="add" size={24} color="#fff" />
       </View>
     </Pressable>
   );
