@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { ActivityIndicator, Text, View } from "react-native";
 import "../global.css";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import SignInCTA from "@/components/SignInCTA";
 
 type AppProps = {
   className?: string;
@@ -50,11 +51,12 @@ export default function App({ className }: AppProps) {
         Share your moments in frames <MaterialCommunityIcons name="camera-plus" size={24} color="blue" />
       </Text>
 
-      <SignInButton mode="modal">
+      {/* <SignInButton mode="modal">
         <View className={`${btnStyles} ${className}`}>
           <Text className="text-white font-medium">Get started</Text>
         </View>
-      </SignInButton>
+      </SignInButton> */}
+      <SignInCTA />
     </View>
   );
 }
