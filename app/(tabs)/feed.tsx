@@ -37,6 +37,7 @@ export default function Feed() {
       keyExtractor={(item) => String(item._id)}
       renderItem={({ item }) => <PostCard post={item as Post} />}
       // contentContainerStyle={{ padding: 12 }}
+      className="bg-black text-white"
     />
   );
 }
@@ -55,7 +56,6 @@ function PostCard({ post }: { post: Post }) {
 
   useEffect(() => {
     if (!player) return;
-    // runtime-safe loop setup (avoid TS errors by casting to any)
     try {
       (player as any).loop = true;
       (player as any).setLoop?.(true);
@@ -63,24 +63,9 @@ function PostCard({ post }: { post: Post }) {
     setIsPlaying(false);
   }, [player]);
 
-  // const togglePlay = async () => {
-  //   if (!player) return;
-  //   try {
-  //     if (isPlaying) {
-  //       await (player as any).pause?.();
-  //       setIsPlaying(false);
-  //     } else {
-  //       await (player as any).play?.();
-  //       setIsPlaying(true);
-  //     }
-  //   } catch {
-  //     setIsPlaying((s) => !s);
-  //   }
-  // };
-
 
   const Overlay = () => (
-    <View className="absolute left-0 top-0 p-3 flex-row items-center">
+    <View className="p-2 flex-row items-center">
       {post.authorProfileImage ? (
         <Image
           source={{ uri: post.authorProfileImage }}
@@ -97,7 +82,7 @@ function PostCard({ post }: { post: Post }) {
 
       <View className="flex-1">
         <Text className="text-white font-semibold text-sm" numberOfLines={1}>
-          {post.authorName ?? "Unknown"}
+          {post.authorName ?? "Anonymous"}
         </Text>
       </View>
     </View>
@@ -105,27 +90,25 @@ function PostCard({ post }: { post: Post }) {
 
   return (
     <View className="mb-4 overflow-hidden">
+      <Overlay />
+
       {media ? (
         isImage ? (
           <ImageBackground
             source={{ uri: media.url }}
             className="w-full aspect-square"
             imageStyle={{ resizeMode: "cover" }}
-          >
-            <Overlay />
-          </ImageBackground>
+          />
         ) : isVideo ? (
           <View
-            className="w-full"
-            style={{ aspectRatio: 1, backgroundColor: "#000" }}
+            className="w-full aspect-square bg-black"
           >
             <VideoView
               player={player}
-              style={{ width: "100%", height: "100%" }}
+              className="w-full h-auto aspect-square"
               allowsFullscreen
               allowsPictureInPicture
             />
-            <Overlay />
           </View>
         ) : null
       ) : (
@@ -138,68 +121,16 @@ function PostCard({ post }: { post: Post }) {
 
       {post.caption ? (
         <View className="p-3 pb-1 flex-row gap-2">
-          <Text className="font-semibold mb-1">{post.authorName}</Text>
-          <Text>{post.caption}</Text>
+          <Text className="font-semibold mb-1 text-white">
+            {post.authorName}
+          </Text>
+          <Text className="text-gray-50">{post.caption}</Text>
         </View>
       ) : null}
-      <Text className="px-3 pb-4 text-gray-600 text-sm">{time}</Text>
+      <Text className="px-3 pb-4 text-gray-100 text-sm">{time}</Text>
     </View>
   );
 }
-
-/* ---------- helper: Instagram-style time ---------- */
-
-// function PostCard({ post }: { post: any }) {
-//   const when = post._creationTime;
-//   const time = formatTime(when);
-
-//   return (
-//     <View
-//       style={{
-//         marginBottom: 16,
-//         backgroundColor: "transparent",
-//         borderRadius: 8,
-//         overflow: "hidden",
-//       }}
-//     >
-//       <View className="flex-row items-center p-4">
-//         {post.authorProfileImage ? (
-//           <Image
-//             source={{ uri: post.authorProfileImage }}
-//             className="w-12 h-12 rounded-full bg-gray-300 mr-2"
-//           />
-//         ) : (
-//           <View className="mr-2">
-//             <Ionicons name="person-circle" size={42} color="gray" />
-//           </View>
-//         )}
-//         <View className="flex-1">
-//           <Text className="font-semibold">{post.authorName}</Text>
-//           <Text className="text-gray-600 text-sm">{time}</Text>
-//         </View>
-//       </View>
-
-//       {/* show first media item as main preview */}
-//       {post.media?.length > 0 && post.media[0].kind === "image" ? (
-//         <Image
-//           source={{ uri: post.media[0].url }}
-//           className="w-full h-auto aspect-square"
-//         />
-//       ) : post.media?.length > 0 ? (
-//         <View className="w-full h-80 bg-black items-center justify-center">
-//           <Text style={{ color: "#fff" }}>Video</Text>
-//         </View>
-//       ) : null}
-
-//       {post.caption ? (
-//         <Text className="p-3">
-//           <Text className="font-semibold">{post.authorName}</Text>{" "}
-//           {post.caption}
-//         </Text>
-//       ) : null}
-//     </View>
-//   );
-// }
 
 function formatTime(time: string | number | Date): string {
   const now = new Date();

@@ -87,7 +87,7 @@ export default function RootLayout() {
     >
       <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
         <AuthRedirect />
-        <Stack>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#000" } }}>
           <Stack.Screen
             name="index"
             options={{

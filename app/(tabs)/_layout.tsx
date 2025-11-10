@@ -13,9 +13,6 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
         top: -18,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.15,
         elevation: 6,
       }}
     >
@@ -42,20 +39,25 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-         headerTitle: "Framez",
+        headerTitle: "Framez",
         // title: "Framez",
         headerTitleStyle: {
           fontWeight: "700",
           fontSize: 24,
           color: "#0ea5e9",
-          fontFamily: "Lobster_400Regular"
+          fontFamily: "Lobster_400Regular",
         },
         headerStyle: {
-          backgroundColor: "#fff",
+          backgroundColor: "#000",
         },
         // headerTitleAlign: "center",
         tabBarShowLabel: false,
-        tabBarStyle: { height: 64, paddingBottom: 8 },
+        tabBarStyle: {
+          height: 64,
+          paddingBottom: 8,
+          backgroundColor: "#000",
+          borderTopColor: "#222",
+        },
       }}
     >
       <Tabs.Screen
@@ -66,7 +68,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? "home" : "home-outline"}
               size={24}
-              color={focused ? "#0ea5e9" : "#222"}
+              color={focused ? "#0ea5e9" : "#fff"}
             />
           ),
         }}
@@ -87,7 +89,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? "person-sharp" : "person-outline"}
               size={24}
-              color={focused ? "#0ea5e9" : "#222"}
+              color={focused ? "#0ea5e9" : "#fff"}
             />
           ),
         }}
