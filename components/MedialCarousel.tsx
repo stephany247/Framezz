@@ -1,4 +1,3 @@
-// src/components/MediaCarousel.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -11,6 +10,7 @@ import {
   Text,
   FlatList as RNFlatList,
   ViewToken,
+  Image,
 } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -105,16 +105,40 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
 
 function MediaImage({ url }: { url: string }) {
   return (
-    <ImageBackground
-      source={{ uri: url }}
+    // <>
+    //   <ImageBackground
+    //     source={{ uri: url }}
+    //     style={{
+    //       width: SCREEN_WIDTH,
+    //       height: SCREEN_WIDTH,
+    //       aspectRatio: "1",
+    //       backgroundColor: " #1f2937",
+    //     }}
+    //     imageStyle={{ resizeMode: "cover" }}
+    //   />
+
+    <View
       style={{
         width: SCREEN_WIDTH,
         height: SCREEN_WIDTH,
+        backgroundColor: "#1f2937",
+        alignItems: "center",
+        justifyContent: "center",
         aspectRatio: "1",
-        backgroundColor: " #1f2937",
       }}
-      imageStyle={{ resizeMode: "cover" }}
-    />
+    >
+      <ImageBackground
+        source={{ uri: url }}
+        style={{
+          width: SCREEN_WIDTH,
+          height: SCREEN_WIDTH,
+          aspectRatio: "1",
+          backgroundColor: " #1f2937",
+        }}
+        imageStyle={{ resizeMode: "cover" }}
+      />
+    </View>
+    // </>
   );
 }
 

@@ -1,4 +1,3 @@
-// src/components/PostComposer.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -12,8 +11,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -27,6 +28,10 @@ export default function PostComposer() {
   const [uploading, setUploading] = useState(false);
   const createPost = useMutation(api.posts.createPost);
 
+  // crop modal state
+  const [cropModalVisible, setCropModalVisible] = useState(false);
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+
   async function pickMedia() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -37,8 +42,7 @@ export default function PostComposer() {
 
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images", "videos"],
-        allowsEditing: true,
-        aspect: [1, 1],
+        allowsEditing: false,
         quality: 0.9,
       });
 
@@ -55,6 +59,72 @@ export default function PostComposer() {
 
   function removeMedia(index: number) {
     setMediaItems((s) => s.filter((_, i) => i !== index));
+  }
+
+  // helper: get image size using Image.getSize
+  function getImageSize(uri: string): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+      Image.getSize(
+        uri,
+        (width, height) => resolve({ width, height }),
+        (err) => reject(err)
+      );
+    });
+  }
+
+  // center-crop at index with aspect ratio ratioW:ratioH
+  async function cropImageAtIndex(index: number, ratioW: number, ratioH: number) {
+    const item = mediaItems[index];
+    if (!item || item.kind !== "image") {
+      Alert.alert("Crop not available", "Only images can be cropped.");
+      return;
+    }
+
+    try {
+      // ensure a file URI compatible with Image.getSize and manipulator
+      const src = item.uri.startsWith("file://") ? item.uri : item.uri;
+
+      const { width, height } = await getImageSize(src);
+
+      const targetAspect = ratioW / ratioH;
+      const srcAspect = width / height;
+
+      let cropWidth = width;
+      let cropHeight = height;
+      let originX = 0;
+      let originY = 0;
+
+      if (srcAspect > targetAspect) {
+        // source is wider; crop left/right
+        cropHeight = height;
+        cropWidth = Math.round(height * targetAspect);
+        originX = Math.round((width - cropWidth) / 2);
+      } else {
+        // source is taller; crop top/bottom
+        cropWidth = width;
+        cropHeight = Math.round(width / targetAspect);
+        originY = Math.round((height - cropHeight) / 2);
+      }
+
+      const manipulated = await ImageManipulator.manipulateAsync(
+        src,
+        [{ crop: { originX, originY, width: cropWidth, height: cropHeight } }],
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      // replace the mediaItems[index] with the cropped uri
+      setMediaItems((prev) => {
+        const copy = [...prev];
+        copy[index] = { ...copy[index], uri: manipulated.uri };
+        return copy;
+      });
+
+      setCropModalVisible(false);
+      setCropTargetIndex(null);
+    } catch (e) {
+      console.warn("crop failed", e);
+      Alert.alert("Crop failed", "Could not crop image.");
+    }
   }
 
   async function submit() {
@@ -124,27 +194,47 @@ export default function PostComposer() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
           {mediaItems.length === 0 ? (
             <View className="w-full items-center justify-center">
-              <Text className="text-gray-500">No media selected</Text>
+              <Text className="text-gray-500 text-lg font-semibold">No media selected.</Text>
             </View>
           ) : (
             mediaItems.map((m, idx) => (
-              <View key={idx} className="mr-3">
+              <View key={idx} className="mr-3" style={{ width: 128, height: 128 }}>
                 <Image
                   source={{ uri: m.uri }}
                   className="w-32 h-32 rounded-md"
-                  style={{ resizeMode: "cover" }}
+                  style={{ resizeMode: "cover", width: 128, height: 128, borderRadius: 8 }}
                 />
+
                 {/* overlay remove button */}
                 <Pressable
                   onPress={() => removeMedia(idx)}
                   className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+                  style={{ top: 6, right: 6 }}
                 >
                   <Ionicons name="close" size={14} color="#fff" />
                 </Pressable>
 
+                {/* CROP button for images */}
+                {m.kind === "image" && (
+                  <Pressable
+                    onPress={() => {
+                      setCropTargetIndex(idx);
+                      setCropModalVisible(true);
+                    }}
+                    className="absolute left-1 bottom-1 bg-black/60 rounded-full px-2 py-1 flex-row items-center"
+                    style={{ left: 6, bottom: 6 }}
+                  >
+                    <Ionicons name="crop" size={12} color="#fff" />
+                    <Text className="text-white text-xs ml-1">Crop</Text>
+                  </Pressable>
+                )}
+
                 {/* video badge */}
                 {m.kind === "video" && (
-                  <View className="absolute left-1 bottom-1 bg-black/60 rounded-full px-2 py-1 flex-row items-center">
+                  <View
+                    className="absolute left-1 bottom-1 bg-black/60 rounded-full px-2 py-1 flex-row items-center"
+                    style={{ left: 6, bottom: 6 }}
+                  >
                     <Ionicons name="videocam" size={12} color="#fff" />
                     <Text className="text-white text-xs ml-1">Video</Text>
                   </View>
@@ -158,7 +248,6 @@ export default function PostComposer() {
           <Pressable
             onPress={submit}
             disabled={uploading}
-            // activeOpacity={0.85}
             className={`flex-row items-center px-4 py-2 rounded-md ${uploading ? "bg-gray-700" : "bg-[#0ea5e9]"}`}
           >
             {uploading ? (
@@ -169,6 +258,45 @@ export default function PostComposer() {
             <Text className="text-white font-semibold">{uploading ? "Posting..." : "Post"}</Text>
           </Pressable>
         </View>
+
+        {/* Crop modal */}
+        <Modal
+          visible={cropModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setCropModalVisible(false)}
+        >
+          <View className="flex-1 justify-end bg-[rgba(0,0,0,0.4)]">
+            <View className="bg-gray-900 p-4 rounded-t-xl">
+              <Text className="text-[#fff] mb-3 text-lg font-semibold border-b border-gray-500 pb-2">Choose crop</Text>
+
+              <TouchableOpacity
+                onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 1, 1)}
+                style={{ paddingVertical: 12 }}
+              >
+                <Text className="text-[#fff]">Square (1:1)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 4, 3)}
+                style={{ paddingVertical: 12 }}
+              >
+                <Text className="text-[#fff]">4:3</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 16, 9)}
+                style={{ paddingVertical: 12 }}
+              >
+                <Text className="text-[#fff]">16:9</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setCropModalVisible(false)} style={{ paddingVertical: 12 }}>
+                <Text className="text-[#aaa]">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </KeyboardAvoidingView>
   );
