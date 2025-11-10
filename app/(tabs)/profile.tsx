@@ -34,12 +34,12 @@ function ProfileContent() {
   const { user } = useUser(); // Clerk client-side user
   // Convex query: get the user's stored Convex doc
   const profile = useQuery(api.users.getUserProfile);
-    const userId = profile ? (profile._id as Id<"users">) : undefined;
-  const myPosts = useQuery(
-    api.posts.getPostsByUser,
-    userId ? { userId } : "skip"
-  );
-
+    // const userId = profile ? (profile._id as Id<"users">) : undefined;
+//   const myPosts = useQuery(
+//     api.posts.getPostsByUser,
+//     userId ? { userId } : "skip"
+//   );
+const myPosts = useQuery(api.posts.getPostsByUser, profile ? { userId: profile._id } : "skip");
   // Loading fallback
   if (!profile || myPosts === undefined) {
     return (
