@@ -3,82 +3,173 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Button,
-  Image,
   Text,
   ScrollView,
+  Image,
+  TouchableOpacity,
   Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { uploadToCloudinary } from "@/utils/upload";
 
+type MediaItem = { uri: string; kind: "image" | "video" };
+
 export default function PostComposer() {
-  const [mediaUris, setMediaUris] = useState<string[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [caption, setCaption] = useState("");
+  const [uploading, setUploading] = useState(false);
   const createPost = useMutation(api.posts.createPost);
 
-  async function pickImage() {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!res.canceled) setMediaUris((s) => [...s, res.assets[0].uri]);
-    console.log(res);
+  async function pickMedia() {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission required", "We need access to your media library.");
+        return;
+      }
+
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images", "videos"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+      });
+
+      if (!res.canceled && res.assets?.length) {
+        const asset = res.assets[0];
+        const kind = /\.(mp4|mov|m4v|webm)$/i.test(asset.uri ?? "") ? "video" : "image";
+        setMediaItems((s) => [...s, { uri: asset.uri, kind }]);
+      }
+    } catch (e) {
+      console.error("pickMedia error", e);
+      Alert.alert("Error", "Could not open media picker.");
+    }
+  }
+
+  function removeMedia(index: number) {
+    setMediaItems((s) => s.filter((_, i) => i !== index));
   }
 
   async function submit() {
-    if (mediaUris.length === 0) {
+    if (mediaItems.length === 0) {
       Alert.alert("Add at least one image or video.");
       return;
     }
 
+    setUploading(true);
     try {
-      // upload in sequence (parallel is possible but keep simple)
-      const media = [];
-      for (const uri of mediaUris) {
-        // on Android sometimes we must ensure uri starts with file://
-        const normalizedUri = uri.startsWith("file://") ? uri : `file://${uri}`;
-        const url = await uploadToCloudinary(normalizedUri);
-        const kind = /\.(mp4|mov)$/i.test(uri) ? "video" : "image";
-        media.push({ url, kind });
+      const media: { url: string; kind: "image" | "video" }[] = [];
+      for (const item of mediaItems) {
+        const normalized = item.uri.startsWith("file://") ? item.uri : `file://${item.uri}`;
+        const url = await uploadToCloudinary(normalized);
+        media.push({ url, kind: item.kind });
       }
 
       await createPost({ media, caption: caption || undefined });
-      // reset UI
-      setMediaUris([]);
       setCaption("");
+      setMediaItems([]);
+      Alert.alert("Success", "Post created.");
     } catch (e) {
-      console.error("Create post failed", e);
+      console.error("submit error", e);
       Alert.alert("Failed to create post", String(e));
+    } finally {
+      setUploading(false);
     }
   }
 
   return (
-    <View style={{ padding: 12 }}>
-      <TextInput
-        placeholder="Write a caption (optional)"
-        value={caption}
-        onChangeText={setCaption}
-        style={{ borderWidth: 1, padding: 8, borderRadius: 8, marginBottom: 8 }}
-      />
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View className="bg-gray-900 rounded-xl p-4">
+        <Text className="text-lg text-gray-100 mb-2">Caption</Text>
+        <TextInput
+          placeholder="Add a caption..."
+          placeholderTextColor="#9CA3AF"
+          value={caption}
+          onChangeText={setCaption}
+          multiline
+          numberOfLines={3}
+          className="bg-gray-800 text-white rounded-md p-3 mb-8"
+        />
 
-      <Button title="Pick image/video" onPress={pickImage} />
+        <View className="flex-row items-center justify-between mb-6">
+          <TouchableOpacity
+            onPress={pickMedia}
+            activeOpacity={0.8}
+            className="flex-row items-center bg-[#0ea5e9] px-4 py-2 rounded-md"
+          >
+            <Ionicons name="images" size={18} color="#fff" />
+            <Text className="text-white ml-2">Add photo / video</Text>
+          </TouchableOpacity>
 
-      <ScrollView horizontal style={{ marginVertical: 12 }}>
-        {mediaUris.map((u, i) => (
-          <Image
-            key={i}
-            source={{ uri: u }}
-            style={{ width: 120, height: 120, marginRight: 8 }}
-          />
-        ))}
-      </ScrollView>
+          <TouchableOpacity
+            onPress={() => {
+              setCaption("");
+              setMediaItems([]);
+            }}
+            activeOpacity={0.8}
+            className="flex-row items-center px-3 py-2"
+          >
+            <Ionicons name="trash-outline" size={18} color="#F87171" />
+            <Text className="text-red-400 ml-2">Clear</Text>
+          </TouchableOpacity>
+        </View>
 
-      <Button title="Post" onPress={submit} />
-    </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+          {mediaItems.length === 0 ? (
+            <View className="w-full items-center justify-center">
+              <Text className="text-gray-500">No media selected</Text>
+            </View>
+          ) : (
+            mediaItems.map((m, idx) => (
+              <View key={idx} className="mr-3">
+                <Image
+                  source={{ uri: m.uri }}
+                  className="w-32 h-32 rounded-md"
+                  style={{ resizeMode: "cover" }}
+                />
+                {/* overlay remove button */}
+                <Pressable
+                  onPress={() => removeMedia(idx)}
+                  className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+                >
+                  <Ionicons name="close" size={14} color="#fff" />
+                </Pressable>
+
+                {/* video badge */}
+                {m.kind === "video" && (
+                  <View className="absolute left-1 bottom-1 bg-black/60 rounded-full px-2 py-1 flex-row items-center">
+                    <Ionicons name="videocam" size={12} color="#fff" />
+                    <Text className="text-white text-xs ml-1">Video</Text>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
+        </ScrollView>
+
+        <View className="flex-row items-center justify-end mt-12">
+          <Pressable
+            onPress={submit}
+            disabled={uploading}
+            // activeOpacity={0.85}
+            className={`flex-row items-center px-4 py-2 rounded-md ${uploading ? "bg-gray-700" : "bg-[#0ea5e9]"}`}
+          >
+            {uploading ? (
+              <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />
+            ) : (
+              <Ionicons name="cloud-upload" size={16} color="#fff" style={{ marginRight: 8 }} />
+            )}
+            <Text className="text-white font-semibold">{uploading ? "Posting..." : "Post"}</Text>
+          </Pressable>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
