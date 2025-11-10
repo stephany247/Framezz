@@ -9,6 +9,7 @@
  */
 
 import type * as messages from "../messages.js";
+import type * as posts from "../posts.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,6 +28,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   messages: typeof messages;
+  posts: typeof posts;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
