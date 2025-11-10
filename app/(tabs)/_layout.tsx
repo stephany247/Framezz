@@ -2,7 +2,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { View, Pressable } from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 
 function UploadButton({ onPress }: { onPress?: () => void }) {
@@ -41,7 +41,19 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+         headerTitle: "Framez",
+        // title: "Framez",
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 24,
+          color: "#0ea5e9",
+          fontFamily: "Lobster_400Regular"
+        },
+        headerStyle: {
+          backgroundColor: "#fff",
+        },
+        // headerTitleAlign: "center",
         tabBarShowLabel: false,
         tabBarStyle: { height: 64, paddingBottom: 8 },
       }}
@@ -49,6 +61,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="feed"
         options={{
+          title: "Framez",
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
