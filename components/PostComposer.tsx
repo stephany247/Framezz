@@ -268,27 +268,27 @@ export default function PostComposer() {
         >
           <View className="flex-1 justify-end bg-[rgba(0,0,0,0.4)]">
             <View className="bg-gray-900 p-4 rounded-t-xl">
-              <Text className="text-[#fff] mb-3 text-lg font-semibold border-b border-gray-500 pb-2">Choose crop</Text>
+              <Text className="text-white mb-3 text-lg font-semibold border-b border-gray-500 pb-2">Choose crop</Text>
 
               <TouchableOpacity
                 onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 1, 1)}
                 style={{ paddingVertical: 12 }}
               >
-                <Text className="text-[#fff]">Square (1:1)</Text>
+                <Text className="text-white">Square (1:1)</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 4, 3)}
                 style={{ paddingVertical: 12 }}
               >
-                <Text className="text-[#fff]">4:3</Text>
+                <Text className="text-white">4:3</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => cropTargetIndex !== null && cropImageAtIndex(cropTargetIndex, 16, 9)}
                 style={{ paddingVertical: 12 }}
               >
-                <Text className="text-[#fff]">16:9</Text>
+                <Text className="text-white">16:9</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => setCropModalVisible(false)} style={{ paddingVertical: 12 }}>

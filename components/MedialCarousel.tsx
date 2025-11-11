@@ -86,8 +86,8 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
         onPress={handleUnmute}
         style={{
           position: "absolute",
-          right: 12,
-          bottom: 12,
+          right: 16,
+          bottom: 16,
           padding: 8,
           borderRadius: 20,
           backgroundColor: "rgba(0,0,0,0.5)",
@@ -96,7 +96,7 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
         {muted ? (
           <Ionicons name="volume-high" size={18} color="#fff" />
         ) : (
-          <MaterialCommunityIcons name="volume-off" size={24} color="#fff" />
+          <MaterialCommunityIcons name="volume-off" size={18} color="#fff" />
         )}
       </TouchableOpacity>
     </View>
@@ -142,11 +142,27 @@ function MediaImage({ url }: { url: string }) {
   );
 }
 
-export default function MediaCarousel({ media }: { media?: Media[] }) {
+export default function MediaCarousel({
+  media,
+  initialIndex = 0,
+}: {
+  media?: Media[];
+  initialIndex?: number;
+}) {
   const items = Array.isArray(media) ? media : [];
   const listRef = useRef<RNFlatList<Media> | null>(null);
   const [index, setIndex] = useState(0);
   const [visibleIndex, setVisibleIndex] = useState<number>(0);
+
+    // if initialIndex changes, scroll to it
+  useEffect(() => {
+    if (!listRef.current) return;
+    try {
+      listRef.current.scrollToIndex({ index: initialIndex, animated: false });
+      setIndex(initialIndex);
+      setVisibleIndex(initialIndex);
+    } catch {}
+  }, [initialIndex]);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = e.nativeEvent.contentOffset.x;
