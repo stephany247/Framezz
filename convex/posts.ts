@@ -27,12 +27,11 @@ export const createPost = mutation({
       .unique();
     if (!user) throw new Error("User not found in DB; call storeUser first");
 
-    const nowIso = new Date().toISOString();
     const authorProfileImage = typeof user.profileImage === "string" ? user.profileImage : undefined;
 
     return await ctx.db.insert("posts", {
       author: user._id,
-      authorName: user.name ?? "Anonymous",
+      authorName: user.username ?? user.name ?? "Anonymous",
     //   authorProfileImage: user.profileImage ?? null,
     authorProfileImage,
       media,

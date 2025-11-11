@@ -97,11 +97,13 @@ function ProfileContent() {
 
   const avatarUrl = profile.profileImage ?? user?.imageUrl ?? null;
   const displayName =
-    profile.name ??
-    user?.firstName ??
-    user?.fullName ??
-    user?.username ??
-    "Anonymous";
+  profile?.username ||
+  profile?.name ||
+  user?.username ||
+  user?.firstName ||
+  user?.fullName ||
+  "Anonymous";
+
   const email =
     user?.primaryEmailAddress?.emailAddress ??
     user?.emailAddresses?.[0]?.emailAddress ??
@@ -196,7 +198,7 @@ function ProfileContent() {
               >
                 <Ionicons name="arrow-back-sharp" size={20} color="#fff" />
               </TouchableOpacity>
-              <Text className="text-white font-semibold">Posts</Text>
+              <Text className="text-white font-semibold text-2xl">Posts</Text>
               <View style={{ width: 44 }} />
             </View>
 

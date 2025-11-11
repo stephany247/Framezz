@@ -1,112 +1,197 @@
-import * as React from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { useSignUp } from '@clerk/clerk-expo'
-import { Link, useRouter } from 'expo-router'
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { useSignUp } from "@clerk/clerk-expo";
+import { Link, useRouter } from "expo-router";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-export default function SignUpScreen() {
-  const { isLoaded, signUp, setActive } = useSignUp()
-  const router = useRouter()
+export default function SignUpPage() {
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const router = useRouter();
+  const storeUser = useMutation(api.users.storeUser);
 
-  const [emailAddress, setEmailAddress] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [pendingVerification, setPendingVerification] = React.useState(false)
-  const [code, setCode] = React.useState('')
+  const [username, setUsername] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Handle submission of sign-up form
+  const validateUsername = (u: string) => {
+    if (!u || u.length < 4 || u.length > 64) {
+      return "Username must be 4–64 characters.";
+    }
+    const re = /^[A-Za-z0-9._-]+$/;
+    if (!re.test(u)) return "Use letters, numbers, dot, underscore or hyphen.";
+    return null;
+  };
+
   const onSignUpPress = async () => {
-    if (!isLoaded) return
+    if (!isLoaded) {
+      Alert.alert("Authentication not ready");
+      return;
+    }
 
-    console.log(emailAddress, password)
+    const usernameErr = validateUsername(username);
+    if (usernameErr) {
+      Alert.alert("Invalid username", usernameErr);
+      return;
+    }
+    if (!emailAddress || !password) {
+      Alert.alert("Missing fields", "Please provide email and password.");
+      return;
+    }
 
-    // Start sign-up process using email and password provided
+    setLoading(true);
     try {
       await signUp.create({
         emailAddress,
         password,
-      })
+        username,
+      });
 
-      // Send user an email with verification code
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
-      setPendingVerification(true)
-    } catch (err) {
-      // See https://clerk.com/docs/guides/development/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+      setPendingVerification(true);
+      Alert.alert("Verification sent", "Check your email for the code.");
+    } catch (err: any) {
+      console.error("Sign up error:", err);
+      const msg =
+        err?.errors?.[0]?.longMessage ?? err?.message ?? "Sign up failed.";
+      Alert.alert("Sign up failed", String(msg));
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // Handle submission of verification form
   const onVerifyPress = async () => {
-    if (!isLoaded) return
-
+    if (!isLoaded) return;
+    setLoading(true);
     try {
-      // Use the code the user provided to attempt verification
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
-      })
-
-      // If verification was completed, set the session to active
-      // and redirect the user
-      if (signUpAttempt.status === 'complete') {
-        await setActive({ session: signUpAttempt.createdSessionId })
-        router.replace('/(tabs)/feed')
+      });
+      if (signUpAttempt.status === "complete") {
+        await setActive({ session: signUpAttempt.createdSessionId });
+        try {
+          await storeUser({ username });
+        } catch (err) {
+          console.warn("Failed to store username in DB:", err);
+        }
+        router.replace("/(tabs)/feed");
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
-        console.error(JSON.stringify(signUpAttempt, null, 2))
+        console.error("Verification incomplete:", signUpAttempt);
+        Alert.alert("Verification incomplete", "Check console for details.");
       }
-    } catch (err) {
-      // See https://clerk.com/docs/guides/development/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+    } catch (err: any) {
+      console.error("Verify error:", err);
+      const msg =
+        err?.errors?.[0]?.longMessage ?? err?.message ?? "Verification failed.";
+      Alert.alert("Verification failed", String(msg));
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   if (pendingVerification) {
     return (
-      <>
-        <Text>Verify your email</Text>
+      <View className="flex-1 p-5 justify-cente bg-gray-950">
+        <Text className="text-2xl font-bold mb-5 text-center">
+          Verify your email
+        </Text>
+
         <TextInput
+          className="border border-gray-200 p-3 rounded-lg mb-3 text-gray-100 placeholder:text-gray-400"
           value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
+          placeholder="Enter verification code"
+          onChangeText={setCode}
+          autoCapitalize="none"
         />
-        <TouchableOpacity onPress={onVerifyPress}>
-          <Text>Verify</Text>
-        </TouchableOpacity>
-      </>
-    )
+
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <TouchableOpacity
+            onPress={onVerifyPress}
+            className="bg-sky-500 py-3 rounded-lg items-center"
+          >
+            <Text className="text-white font-semibold">Verify</Text>
+          </TouchableOpacity>
+        )}
+
+        <View className="h-3" />
+
+        <View className="flex-row items-center space-x-2 justify-center mt-3">
+          <Text className="text-sm text-gray-700">
+            Already have an account?
+          </Text>
+          <Link href="/sign-in">
+            <Text className="text-sky-500">Sign in</Text>
+          </Link>
+        </View>
+      </View>
+    );
   }
 
   return (
-    <View>
-      <>
-        <Text>Sign up</Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-        <TouchableOpacity onPress={onSignUpPress}>
-          <Text>Continue</Text>
+    <View className="flex-1 p-5 justify-center bg-gray-950">
+      <Text className="text-2xl font-bold mb-5 text-center text-gray-100">
+        Sign up
+      </Text>
+
+      <TextInput
+        className="border border-gray-600 p-3 rounded-lg mb-3 text-gray-100 placeholder:text-gray-400"
+        autoCapitalize="none"
+        value={username}
+        placeholder="Choose a username"
+        onChangeText={setUsername}
+      />
+
+      <TextInput
+        className="border border-gray-600 p-3 rounded-lg mb-3 text-gray-100 placeholder:text-gray-400"
+        autoCapitalize="none"
+        value={emailAddress}
+        placeholder="Enter email"
+        onChangeText={setEmailAddress}
+      />
+
+      <TextInput
+        className="border border-gray-600 p-3 rounded-lg mb-4 text-gray-100 placeholder:text-gray-400"
+        value={password}
+        placeholder="Enter password"
+        secureTextEntry
+        onChangeText={setPassword}
+      />
+
+      {loading ? (
+        <Pressable className="bg-sky-500 py-3 rounded-lg items-center">
+          <ActivityIndicator />
+        </Pressable>
+      ) : (
+        <TouchableOpacity
+          onPress={onSignUpPress}
+          className="bg-sky-500 py-3 rounded-lg items-center"
+        >
+          <Text className="text-white font-semibold">Continue</Text>
         </TouchableOpacity>
-        <View style={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
-          <Text>Already have an account?</Text>
-          <Link href="/sign-in">
-            <Text>Sign in</Text>
-          </Link>
-        </View>
-      </>
+      )}
+
+      <View className="h-3" />
+
+      <View className="flex-row items-center gap-2 justify-center mt-2">
+        <Text className="text-sm text-gray-700">Already have an account?</Text>
+        <Link href="/sign-in">
+          <Text className="text-sky-500">Sign in</Text>
+        </Link>
+      </View>
     </View>
-  )
+  );
 }

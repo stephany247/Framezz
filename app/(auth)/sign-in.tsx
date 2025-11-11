@@ -4,9 +4,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
   ActivityIndicator,
+  Alert,
+  Pressable,
 } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
@@ -15,37 +15,36 @@ export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // <- declare this
+  const [loading, setLoading] = useState(false);
 
   const onSignInPress = async () => {
     if (!isLoaded) {
       Alert.alert("Auth not ready");
       return;
     }
+    if (!identifier) {
+      Alert.alert("Enter email or username");
+      return;
+    }
+
     setLoading(true);
-
     try {
-      // 1) Create the sign-in resource with identifier only
-      // inside onSignInPress
-      const attempt = await signIn.create({ identifier: emailAddress });
-      // console.log("signIn.create ->", attempt);
+      const attempt = await signIn.create({ identifier });
+      const a: any = attempt;
 
-      // find the email_code record
-      const emailFactor = (attempt as any).supportedFirstFactors?.find(
+      const emailFactor = a.supportedFirstFactors?.find(
         (f: any) => f.strategy === "email_code"
       );
 
       if (emailFactor?.emailAddressId) {
-        // Clerk expects emailAddressId when preparing email_code
         await signIn.prepareFirstFactor({
           strategy: "email_code",
           emailAddressId: emailFactor.emailAddressId,
         });
-        // show UX + navigate to enter-code screen
         Alert.alert(
-          "Magic code sent",
+          "Verification code sent",
           "Check your email for the verification code."
         );
         router.push({
@@ -58,10 +57,6 @@ export default function Page() {
         return;
       }
 
-      console.log("signIn.create ->", attempt);
-
-      // 2) Safely inspect the returned shape (cast to any so TS won't complain)
-      const a: any = attempt;
       const supported: string[] =
         a.supportedFirstFactors ??
         a.supportedStrategies ??
@@ -69,16 +64,11 @@ export default function Page() {
         a.supported_first_factors ??
         [];
 
-      console.log("supported strategies ->", supported);
-
-      // 3) Branch based on available strategies
       if (Array.isArray(supported) && supported.includes("password")) {
-        // attempt password first factor
         const pwResult: any = await signIn.attemptFirstFactor({
           strategy: "password",
           password,
         });
-        console.log("password attempt ->", pwResult);
 
         if (pwResult.status === "complete") {
           await setActive({ session: pwResult.createdSessionId });
@@ -91,7 +81,6 @@ export default function Page() {
         Array.isArray(supported) &&
         (supported.includes("email_code") || supported.includes("email_link"))
       ) {
-        // prepareFirstFactor for email_code requires an emailAddressId
         const emailAddressId: string | undefined =
           a.emailAddresses?.[0]?.id ?? a.email_address_id ?? undefined;
 
@@ -99,17 +88,14 @@ export default function Page() {
           console.warn("No emailAddressId found on attempt:", a);
           Alert.alert("Cannot send magic link — no email ID found");
         } else {
-          const prepareResult: any = await signIn.prepareFirstFactor({
+          await signIn.prepareFirstFactor({
             strategy: "email_code",
             emailAddressId,
           });
-          // console.log("prepareFirstFactor ->", prepareResult);
           Alert.alert(
             "Magic link/code sent",
             "Check your email for the code or link."
           );
-          // Optionally route to a code entry screen to call attemptFirstFactor with the code
-          // router.push("/auth/enter-code");
           return;
         }
       } else if (
@@ -121,7 +107,6 @@ export default function Page() {
         );
         return;
       } else {
-        // fallback: Clerk might return next steps in a different prop; log it
         console.warn("Unsupported sign-in strategies:", supported, a);
         Alert.alert("Unsupported sign-in method for this account");
       }
@@ -136,65 +121,48 @@ export default function Page() {
   };
 
   return (
-    <View style={s.container}>
-      <Text style={s.title}>Sign in</Text>
+    <View className="flex-1 p-5 justify-center bg-gray-950">
+      <Text className="text-2xl font-bold mb-5 text-center text-gray-100">
+        Sign in
+      </Text>
 
       <TextInput
-        style={s.input}
+        className="border border-gray-600 p-3 rounded-lg mb-3 text-gray-100 placeholder:text-gray-400"
         autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Enter email"
-        onChangeText={setEmailAddress}
+        value={identifier}
+        placeholder="Email or username"
+        onChangeText={setIdentifier}
       />
 
       <TextInput
-        style={s.input}
+        className="border border-gray-600 p-3 rounded-lg mb-4 text-gray-100 placeholder:text-gray-400"
         value={password}
-        placeholder="Enter password (if available)"
+        placeholder="Enter password"
         secureTextEntry
         onChangeText={setPassword}
       />
 
       {loading ? (
-        <ActivityIndicator />
+        <Pressable className="bg-sky-500 py-3 rounded-lg items-center">
+          <ActivityIndicator />
+        </Pressable>
       ) : (
-        <TouchableOpacity onPress={onSignInPress} style={s.button}>
-          <Text style={s.btnText}>Continue</Text>
+        <TouchableOpacity
+          onPress={onSignInPress}
+          className="bg-sky-500 py-3 mt-2 rounded-lg items-center"
+        >
+          <Text className="text-white font-semibold">Continue</Text>
         </TouchableOpacity>
       )}
 
-      <View style={{ height: 12 }} />
+      {/* <View className="h-3" /> */}
 
-      <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-        <Text>Don't have an account?</Text>
+      <View className="flex-row gap-2 items-center justify-center mt-2">
+        <Text className="text-gray-200">Don't have an account?</Text>
         <Link href="/sign-up">
-          <Text style={{ color: "#0ea5e9" }}>Sign up</Text>
+          <Text className="text-sky-500">Sign up</Text>
         </Link>
       </View>
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: "#0ea5e9",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  btnText: { color: "#fff", fontWeight: "600" },
-});

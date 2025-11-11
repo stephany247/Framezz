@@ -6,8 +6,8 @@ import { mutation, query } from "./_generated/server";
  * Uses tokenIdentifier when available, otherwise falls back to identity.sub.
  */
 export const storeUser = mutation({
-    args: {},
-    handler: async (ctx) => {
+    args: { username: v.optional(v.string()) },
+    handler: async (ctx, { username }) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) {
             throw new Error("Called store without authentication present.");
@@ -26,14 +26,21 @@ export const storeUser = mutation({
             .unique();
 
         // If exists, patch name if changed
-        const incomingName = (identity as any).name ?? (identity as any).firstName ?? "Anonymous";
+        const incomingName =
+            username ??
+            (identity as any).username ??
+            (identity as any).name ??
+            (identity as any).firstName ??
+            "Anonymous";
+
         if (user !== null) {
-            if (user.name !== incomingName) {
-                await ctx.db.patch(user._id, { name: incomingName });
-            }
+            // patch name and username if changed
+            const patchData: any = {};
+            if (user.name !== incomingName) patchData.name = incomingName;
+            if (username && user.username !== username) patchData.username = username;
+            if (Object.keys(patchData).length) await ctx.db.patch(user._id, patchData);
             return user._id;
         }
-
         const profileImage =
             typeof (identity as any).imageUrl === "string"
                 ? (identity as any).imageUrl
@@ -42,6 +49,7 @@ export const storeUser = mutation({
         // Insert: use plain values, no Date objects (Convex dislikes Date objects)
         return await ctx.db.insert("users", {
             name: incomingName,
+            username: username ?? (identity as any).username ?? null,
             tokenIdentifier: tokenId,
             profileImage,
             updatedAt: new Date().toISOString(),
