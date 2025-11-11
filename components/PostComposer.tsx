@@ -156,8 +156,8 @@ export default function PostComposer() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View className="bg-gray-900 rounded-xl p-4">
-        <Text className="text-lg text-gray-100 mb-2">Caption</Text>
+      <View className="bg-gray-900 rounded-lg p-4">
+        <Text className="text-lg text-gray-100 mb-2">Post Caption</Text>
         <TextInput
           placeholder="Add a caption..."
           placeholderTextColor="#9CA3AF"
@@ -194,7 +194,7 @@ export default function PostComposer() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
           {mediaItems.length === 0 ? (
             <View className="w-full items-center justify-center">
-              <Text className="text-gray-500 text-lg font-semibold">No media selected.</Text>
+              <Text className="text-gray-500 text-lg font-medium">No media selected.</Text>
             </View>
           ) : (
             mediaItems.map((m, idx) => (

@@ -8,7 +8,7 @@ export default function UploadScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text className="text-2xl font-bold text-white mb-4">Create</Text>
+        <Text className="text-2xl font-bold text-white mb-4">Create a post</Text>
         <PostComposer />
       </ScrollView>
     </SafeAreaView>

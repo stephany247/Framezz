@@ -37,7 +37,6 @@ const TILE_SIZE = Math.floor(SCREEN_WIDTH / 3);
 export default function ProfilePage() {
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" />
       <SignedIn>
         <ProfileContent />
       </SignedIn>
@@ -90,7 +89,7 @@ function ProfileContent() {
   if (!profile) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color="#fff" />
+        <ActivityIndicator color="#fff" size="large" />
         <Text className="text-gray-300 mt-2">Loading profile…</Text>
       </View>
     );
@@ -108,10 +107,6 @@ function ProfileContent() {
     user?.emailAddresses?.[0]?.emailAddress ??
     "";
 
-  // const followers = profile.followersCount ?? 0;
-  // const following = profile.followingCount ?? 0;
-
-  // open the full feed-style browser, scrolled to `index`
   function openFullBrowser(index = 0) {
     setBrowserIndex(index);
   }
@@ -122,20 +117,18 @@ function ProfileContent() {
   }
 
   return (
-    <View className="flex-1">
+    <View>
       {/* Header */}
-      <View className="px-4 pb-3 pt-4 border-b border-gray-800 flex-row items-start">
+      <View className="px-4 pb-6 border-b border-gray-800 flex-row items-center">
         {avatarUrl ? (
           <Image
             source={{ uri: avatarUrl }}
-            className="w-20 h-20 rounded-full"
-            // style={{ width: 88, height: 88, borderRadius: 44 }}
+            className="w-16 h-16 rounded-full"
           />
         ) : (
-          // <View className="w-22 h-22 rounded-full bg-gray-700" />
           <Ionicons
             name="person-circle"
-            size={36}
+            size={60}
             color="rgba(255,255,255,0.95)"
             style={{ marginRight: 12 }}
           />
@@ -148,39 +141,17 @@ function ProfileContent() {
           {email ? (
             <Text className="text-gray-400 text-sm mt-1">{email}</Text>
           ) : null}
-
-          <View className="flex-row mt-3 justify-between items-center">
-            <View className="items-center">
-              <Text className="text-white font-semibold">{postsCount}</Text>
-              <Text className="text-gray-400 text-xs">posts</Text>
-            </View>
-
-            {/* <View className="items-center">
-              <Text className="text-white font-semibold">{followers}</Text>
-              <Text className="text-gray-400 text-xs">followers</Text>
-            </View>
-
-            <View className="items-center">
-              <Text className="text-white font-semibold">{following}</Text>
-              <Text className="text-gray-400 text-xs">following</Text>
-            </View> */}
-          </View>
         </View>
 
-        <View className="ml-2">
+        <View className="ml-2 bg-[#0ea5e9] rounded-lg px-4 py-2">
           <SignOutButton />
         </View>
-      </View>
-
-      {/* Grid header */}
-      <View className="px-4 py-3 border-b border-gray-800">
-        <Text className="text-white font-semibold">Your posts</Text>
       </View>
 
       {/* Grid */}
       {postsCount === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-400">You haven't posted yet.</Text>
+          <Text className="text-gray-400 font-medium">You haven't posted yet.</Text>
         </View>
       ) : (
         <FlatList
@@ -307,7 +278,7 @@ function FullPostBrowser({
       data={posts}
       keyExtractor={(p) => p._id}
       renderItem={({ item }) => (
-        <View style={{ paddingHorizontal: 12 }}>
+        <View>
           {/* PostCard already renders post header, media carousel etc */}
           <PostCard post={item} />
         </View>

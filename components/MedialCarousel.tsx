@@ -87,7 +87,7 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
         style={{
           position: "absolute",
           right: 16,
-          bottom: 16,
+          top: 16,
           padding: 8,
           borderRadius: 20,
           backgroundColor: "rgba(0,0,0,0.5)",
@@ -121,7 +121,7 @@ function MediaImage({ url }: { url: string }) {
       style={{
         width: SCREEN_WIDTH,
         height: SCREEN_WIDTH,
-        backgroundColor: "#1f2937",
+        backgroundColor: "#0f172a",
         alignItems: "center",
         justifyContent: "center",
         aspectRatio: "1",
@@ -132,10 +132,8 @@ function MediaImage({ url }: { url: string }) {
         style={{
           width: SCREEN_WIDTH,
           height: SCREEN_WIDTH,
-          aspectRatio: "1",
-          backgroundColor: " #1f2937",
         }}
-        imageStyle={{ resizeMode: "cover" }}
+        imageStyle={{ resizeMode: "contain" }}
       />
     </View>
     // </>
@@ -196,7 +194,7 @@ export default function MediaCarousel({
           justifyContent: "center",
         }}
       >
-        <Text style={{ color: "#9CA3AF" }}>No media</Text>
+        <Text className="text-[#9CA3AF]">No media</Text>
       </View>
     );
   }
