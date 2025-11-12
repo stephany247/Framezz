@@ -1,72 +1,75 @@
+// app/_app.tsx  (or wherever this component lives)
+import React from "react";
+import { View, Text, ActivityIndicator } from "react-native";
+import "../global.css";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { api } from "@/convex/_generated/api";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
-import { SignInButton, SignOutButton, useUser } from "@clerk/clerk-react";
+import { SignOutButton, useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
-import { ActivityIndicator, Text, View } from "react-native";
-import "../global.css";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import SignInCTA from "@/components/SignInCTA";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-type AppProps = {
-  className?: string;
-};
 
-export default function App({ className }: AppProps) {
+export default function App() {
   const { isLoading, isAuthenticated } = useStoreUserEffect();
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
-        <Text className="mt-3 text-gray-500">Loading…</Text>
-      </View>
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" />
+          <Text className="mt-3 text-gray-500">Loading…</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
-  const btnStyles =
-    "bg-blue-500 hover:to-blue-500/70 py-3 w-1/2 text-white font-medium inline-flex items-center justify-center rounded-lg";
-
-  // Show feed if logged in (optional redirect later)
   if (isAuthenticated) {
     return (
-      <View className="flex-1 items-center justify-center bg-white space-y-6">
-        <Text className="text-2xl font-bold text-blue-600">
-          Welcome back, <AuthenticatedHeader />
-        </Text>
-        <Text className="text-gray-500 mt-2">
-          You&apos;re signed in and ready to go!
-        </Text>
-        <SignOutButton>
-          <View className={`${btnStyles} ${className}`}>Sign out</View>
-        </SignOutButton>
-      </View>
+      <SafeAreaView className="flex-1 bg-black">
+        <View className="flex-1 items-center justify-center space-y-6 px-6">
+          <Text className="text-2xl font-bold text-sky-500">
+            Welcome back, <AuthenticatedHeader />
+          </Text>
+          <Text className="text-gray-500 text-center">
+            You&apos;re signed in and ready to go!
+          </Text>
+
+          <SignOutButton />
+        </View>
+      </SafeAreaView>
     );
   }
 
-  // Default landing view: welcome text + Clerk auth button
   return (
-    <View className="flex-1 items-center justify-center bg-white px-6 space-y-6">
-      <Text className="text-6xl font-bold mb-2 text-blue-600 font-lobster italic">Framez</Text>
-      <Text className="text-gray-500 mb-8 text-center text-2xl">
-        Share your moments in frames <MaterialCommunityIcons name="camera-plus" size={24} color="blue" />
-      </Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 items-center justify-center px-6 space-y-6">
+        <Text className="text-6xl font-bold mb-2 text-sky-500 italic">
+          Framez
+        </Text>
 
-      {/* <SignInButton mode="modal">
-        <View className={`${btnStyles} ${className}`}>
-          <Text className="text-white font-medium">Get started</Text>
-        </View>
-      </SignInButton> */}
-      <SignInCTA />
-    </View>
+        <Text className="text-gray-500 mb-8 text-center text-2xl">
+          Share your moments in frames
+          <MaterialCommunityIcons
+            name="camera-plus"
+            size={24}
+            color="#0ea5e9"
+          />
+        </Text>
+
+        <SignInCTA />
+      </View>
+    </SafeAreaView>
   );
 }
 
 function AuthenticatedHeader() {
-  const { user } = useUser(); // Clerk client object
-  const profile = useQuery(api.users.getUserProfile); // Convex users doc
+  const { user } = useUser();
+  const profile = useQuery(api.users.getUserProfile);
 
+  // keep logging only on real errors (no noisy logs here)
   if (!profile) {
-    // profile null means user hasn't been stored yet or query still loading
     return <>{user ? (user.firstName ?? user.username) : "user"}!</>;
   }
 

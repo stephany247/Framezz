@@ -1,28 +1,54 @@
 // app/(auth)/enter-code.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, ActivityIndicator, StyleSheet, KeyboardAvoidingView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSignIn } from "@clerk/clerk-expo";
 
 function serializeError(err: any) {
-  try { return JSON.stringify(err, Object.getOwnPropertyNames(err), 2); }
-  catch { return String(err); }
+  try {
+    return JSON.stringify(err, Object.getOwnPropertyNames(err), 2);
+  } catch {
+    return String(err);
+  }
 }
 
 export default function EnterCode() {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { signInId, emailAddressId } = useLocalSearchParams() as { signInId?: string; emailAddressId?: string };
+  const { signInId, emailAddressId } = useLocalSearchParams() as {
+    signInId?: string;
+    emailAddressId?: string;
+  };
   const router = useRouter();
+
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
   if (!signInId) {
     return (
-      <View style={styles.root}>
-        <Text style={styles.msg}>Missing sign-in attempt. Please start sign-in again.</Text>
-        <Button title="Back to sign in" onPress={() => router.push("/(auth)/sign-in")} />
-      </View>
+      <SafeAreaView className="flex-1 bg-black">
+        <View className="flex-1 p-6 justify-center">
+          <Text className="text-white text-center mb-4">
+            Missing sign-in attempt. Please start sign-in again.
+          </Text>
+          <Pressable
+            onPress={() => router.push("/(auth)/sign-in")}
+            className="bg-sky-500 px-4 py-3 rounded-md items-center"
+          >
+            <Text className="text-black font-medium">Back to sign in</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -30,22 +56,22 @@ export default function EnterCode() {
     if (!isLoaded) return Alert.alert("Auth not ready");
     setLoading(true);
     try {
-      // pass signInId so Clerk can find the original attempt
+      // pass signInId so Clerk can find the original attempt if needed
       const res: any = await (signIn as any).attemptFirstFactor({
         strategy: "email_code",
         code,
-        // signInId,
+        signInId,
       });
-      console.log("attemptFirstFactor ->", res);
 
       if (res?.status === "complete") {
         await setActive({ session: res.createdSessionId });
         router.replace("/(tabs)/feed");
         return;
       }
+
       Alert.alert("Verification incomplete", JSON.stringify(res));
     } catch (err: any) {
-      console.error("verify error", serializeError(err), err?.stack);
+      console.error("verify error", serializeError(err));
       Alert.alert("Could not verify code", err?.message ?? "See logs");
     } finally {
       setLoading(false);
@@ -53,15 +79,17 @@ export default function EnterCode() {
   }
 
   async function resendCode() {
-    if (!emailAddressId) return Alert.alert("No email id available to resend to");
+    if (!emailAddressId)
+      return Alert.alert("No email id available to resend to");
     setResending(true);
     try {
       const r: any = await (signIn as any).prepareFirstFactor({
         strategy: "email_code",
         emailAddressId,
       });
-      console.log("resend prepareFirstFactor ->", r);
+
       Alert.alert("Code resent", "Check your email");
+      return r;
     } catch (err: any) {
       console.error("resend error", serializeError(err));
       Alert.alert("Resend failed", err?.message ?? "See logs");
@@ -71,36 +99,66 @@ export default function EnterCode() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.root}>
-      <Text style={styles.title}>Enter verification code</Text>
+    <SafeAreaView className="flex-1 bg-black">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1 p-6 justify-center"
+      >
+        <Text className="text-xl text-white font-semibold mb-4 text-center">
+          Enter verification code
+        </Text>
 
-      <TextInput
-        value={code}
-        onChangeText={setCode}
-        placeholder="6-digit code"
-        keyboardType="number-pad"
-        style={styles.input}
-      />
+        <TextInput
+          value={code}
+          onChangeText={setCode}
+          placeholder="6-digit code"
+          keyboardType="number-pad"
+          placeholderTextColor="#9CA3AF"
+          className="bg-[#0b1113] text-white rounded-md p-3 mb-4"
+          maxLength={8}
+        />
 
-      {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title="Verify code" onPress={submitCode} />
-      )}
+        <View className="mb-3">
+          <Pressable
+            onPress={submitCode}
+            disabled={loading}
+            className={`w-full rounded-md px-4 py-3 items-center ${loading ? "bg-gray-700" : "bg-sky-500"}`}
+            accessibilityRole="button"
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-black font-medium">Verify code</Text>
+            )}
+          </Pressable>
+        </View>
 
-      <View style={{ height: 12 }} />
+        <View className="h-3" />
 
-      {resending ? <ActivityIndicator /> : <Button title="Resend code" onPress={resendCode} />}
+        <View className="mb-3">
+          <Pressable
+            onPress={resendCode}
+            disabled={resending}
+            className="w-full rounded-md px-4 py-3 items-center bg-transparent border border-gray-700"
+            accessibilityRole="button"
+          >
+            {resending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-gray-300">Resend code</Text>
+            )}
+          </Pressable>
+        </View>
 
-      <View style={{ height: 12 }} />
-      <Button title="Back to sign in" onPress={() => router.push("/(auth)/sign-in")} color="#6b7280" />
-    </KeyboardAvoidingView>
+        <View className="h-3" />
+
+        <Pressable
+          onPress={() => router.push("/(auth)/sign-in")}
+          className="w-full rounded-md px-4 py-3 items-center bg-gray-800"
+        >
+          <Text className="text-gray-300">Back to sign in</Text>
+        </Pressable>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, padding: 16, justifyContent: "center" },
-  title: { fontSize: 18, fontWeight: "600", marginBottom: 12, textAlign: "center" },
-  input: { borderWidth: 1, borderColor: "#e5e7eb", padding: 10, borderRadius: 8, marginBottom: 12 },
-  msg: { textAlign: "center", marginBottom: 12 },
-});

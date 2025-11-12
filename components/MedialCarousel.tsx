@@ -19,7 +19,6 @@ import { Media } from "@/utils/types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-
 function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
   const player = useVideoPlayer({ uri: url } as unknown as any as any);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -152,7 +151,7 @@ export default function MediaCarousel({
   const [index, setIndex] = useState(0);
   const [visibleIndex, setVisibleIndex] = useState<number>(0);
 
-    // if initialIndex changes, scroll to it
+  // if initialIndex changes, scroll to it
   useEffect(() => {
     if (!listRef.current) return;
     try {
@@ -244,7 +243,7 @@ export default function MediaCarousel({
             {items.map((_, i) => (
               <View
                 key={i}
-                className={`h-2 rounded-full mx-1 ${i === index ? "w-6 bg-[#0ea5e9]" : "w-2 bg-[#0ea5e9]/50"}`}
+                className={`h-2 rounded-full mx-1 ${i === index ? "w-6 bg-sky-500" : "w-2 bg-sky-500/50"}`}
               />
             ))}
           </View>

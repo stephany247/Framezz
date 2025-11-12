@@ -18,7 +18,7 @@ export const SignOutButton = () => {
   return (
     <TouchableOpacity
       onPress={handleSignOut}
-      className="ml-2 bg-[#0ea5e9] rounded-lg px-4 py-2"
+      className="ml-2 bg-sky-500 rounded-lg px-4 py-2"
     >
       <Text className="text-white">Sign out</Text>
     </TouchableOpacity>

@@ -204,7 +204,7 @@ export default function PostComposer() {
           <TouchableOpacity
             onPress={pickMedia}
             activeOpacity={0.8}
-            className="flex-row items-center bg-[#0ea5e9] px-4 py-2 rounded-md"
+            className="flex-row items-center bg-sky-500 px-4 py-2 rounded-md"
           >
             <Ionicons name="images" size={18} color="#fff" />
             <Text className="text-white ml-2">Add photo / video</Text>
