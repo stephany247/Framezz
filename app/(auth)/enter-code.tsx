@@ -1,6 +1,6 @@
 // app/(auth)/enter-code.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, Alert, ActivityIndicator, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSignIn } from "@clerk/clerk-expo";
 
@@ -71,7 +71,7 @@ export default function EnterCode() {
   }
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root}>
       <Text style={styles.title}>Enter verification code</Text>
 
       <TextInput
@@ -94,7 +94,7 @@ export default function EnterCode() {
 
       <View style={{ height: 12 }} />
       <Button title="Back to sign in" onPress={() => router.push("/(auth)/sign-in")} color="#6b7280" />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

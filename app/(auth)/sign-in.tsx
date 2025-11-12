@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
@@ -121,7 +122,7 @@ export default function Page() {
   };
 
   return (
-    <View className="flex-1 p-5 justify-center bg-gray-950">
+    <KeyboardAvoidingView className="flex-1 p-5 justify-center bg-gray-950">
       <Text className="text-2xl font-bold mb-5 text-center text-gray-100">
         Sign in
       </Text>
@@ -160,9 +161,9 @@ export default function Page() {
       <View className="flex-row gap-2 items-center justify-center mt-2">
         <Text className="text-gray-200">Don't have an account?</Text>
         <Link href="/sign-up">
-          <Text className="text-sky-500">Sign up</Text>
+          <Text className="text-sky-500 underline">Sign up</Text>
         </Link>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

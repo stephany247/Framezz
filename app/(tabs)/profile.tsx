@@ -17,19 +17,10 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignOutButton } from "@/components/SignOutButton";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import PostCard from "@/components/PostCard";
+import PostCard, { Post } from "@/components/PostCard";
 import MediaCarousel from "@/components/MedialCarousel";
 import { Media } from "./feed";
-// import MediaCarousel, { Media } from "@/components/MediaCarousel";
 
-type Post = {
-  _id: string;
-  _creationTime: string | number | Date;
-  authorName?: string;
-  authorProfileImage?: string;
-  media?: Media[];
-  caption?: string;
-};
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TILE_SIZE = Math.floor(SCREEN_WIDTH / 3);
@@ -227,7 +218,7 @@ function ProfileContent() {
               <Ionicons name="close" size={28} color="#fff" />
             </TouchableOpacity>
             <Text className="text-white font-semibold">Post</Text>
-            <View style={{ width: 44 }} />
+            <View className="w-11" />
           </View>
 
           {carouselOpen?.post ? (

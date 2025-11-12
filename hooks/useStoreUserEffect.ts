@@ -7,7 +7,7 @@ import type { Id } from "../convex/_generated/dataModel";
 export function useStoreUserEffect() {
   const { isLoading: convexLoading, isAuthenticated } = useConvexAuth();
   const { user } = useUser();
-  const [userId, setUserId] = useState<Id<"users"> | null>(null);
+  const [userId, setUserId] = useState<Id<"users"> | undefined>(undefined);
   const storeUser = useMutation(api.users.storeUser);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export function useStoreUserEffect() {
     let cancelled = false;
     async function doStore() {
       try {
-        const id = await storeUser();
+        const id = await storeUser({ username: user?.username ?? undefined });
         if (!cancelled) setUserId(id);
       } catch (e) {
         console.error("Failed to store user:", e);
@@ -26,9 +26,9 @@ export function useStoreUserEffect() {
 
     return () => {
       cancelled = true;
-      setUserId(null);
+      setUserId(undefined);
     };
-  }, [isAuthenticated, storeUser, user?.id]);
+  }, [isAuthenticated, storeUser, user?.id, user?.username]);
 
   return {
     isLoading: convexLoading || (isAuthenticated && userId === null),

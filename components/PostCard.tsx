@@ -1,12 +1,26 @@
-import React from "react";
-import { View, Text, Image } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Modal,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MediaCarousel from "./MedialCarousel";
 import { Media } from "@/app/(tabs)/feed";
-// import MediaCarousel, { Media } from "@/components/MediaCarousel";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-type Post = {
-  _id: string;
+export type Post = {
+  _id: Id<"posts">;
   _creationTime: string | number | Date;
   authorName?: string;
   authorProfileImage?: string;
@@ -14,18 +28,128 @@ type Post = {
   caption?: string;
 };
 
-export default function PostCard({ post }: { post: Post }) {
-  const when = post._creationTime;
-  const time = formatTime(when);
+export type Comment = {
+  _id: Id<"comments"> | string;
+  _creationTime: number;
+  postId: Id<"posts"> | string;
+  authorId?: Id<"users"> | string;
+  authorName: string;
+  authorProfileImage?: string | undefined;
+  text: string;
+};
+
+export default function PostCard({
+  post,
+  currentUserId, // optional; pass this so delete button can be shown for your user
+}: {
+  post: Post;
+  currentUserId?: string | Id<"users">;
+}) {
+  const time = formatTime(post._creationTime);
+
+  // Convex v2-style bindings (typed)
+  const commentsQuery = useQuery(api.comments.getCommentsByPost, {
+    postId: post._id,
+    limit: 200,
+  });
+  const createComment = useMutation(api.comments.createComment);
+  const deleteComment = useMutation(api.comments.deleteComment);
+
+  // local state for modal & composer
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [localComments, setLocalComments] = useState<Comment[] | null>(null);
+
+  // unify runtime type: use localComments when present, otherwise server streaming results.
+  const comments: Comment[] = useMemo(() => {
+    return (
+      localComments ??
+      (Array.isArray(commentsQuery)
+        ? (commentsQuery as unknown as Comment[])
+        : [])
+    );
+  }, [localComments, commentsQuery]);
+
+  // keep localComments in sync with server stream (replace on server change)
+  useEffect(() => {
+    if (Array.isArray(commentsQuery)) {
+      // cast server comments into our Comment[] shape (safe because fields match)
+      setLocalComments(commentsQuery as unknown as Comment[]);
+    }
+  }, [commentsQuery?.length, commentsQuery]);
+
+  async function handleAddComment() {
+    const trimmed = newComment.trim();
+    if (!trimmed) return;
+    // optimistic local insert (temp id is a string)
+    const temp: Comment = {
+      _id: `temp-${Date.now()}`,
+      _creationTime: Date.now(),
+      postId: post._id,
+      authorId: currentUserId ?? "unknown",
+      authorName: "You",
+      text: trimmed,
+    };
+    setLocalComments((prev) => [temp, ...(prev ?? [])]);
+    setNewComment("");
+
+    try {
+      // createComment expects postId: Id<"posts">; post._id already has that type
+      const res = await createComment({
+        postId: post._id,
+        text: trimmed,
+      } as any);
+      // server returns {_id: Id<"comments">} — replace temp id if present
+      if (res && (res as any)._id) {
+        setLocalComments((prev) =>
+          (prev ?? []).map((c) =>
+            c._id === temp._id ? { ...c, _id: (res as any)._id } : c
+          )
+        );
+      }
+    } catch (err) {
+      console.error("createComment failed", err);
+      // rollback: remove temp
+      setLocalComments((prev) =>
+        (prev ?? []).filter((c) => c._id !== temp._id)
+      );
+    }
+  }
+
+  async function handleDeleteComment(commentId: Id<"comments"> | string) {
+    // optimistic remove
+    const prev =
+      localComments ??
+      (Array.isArray(commentsQuery)
+        ? (commentsQuery as unknown as Comment[])
+        : []);
+    setLocalComments(prev.filter((c) => c._id !== commentId));
+    try {
+      // deleteComment expects commentId: Id<"comments"> — cast if necessary
+      await deleteComment({ commentId: commentId as Id<"comments"> } as any);
+    } catch (err) {
+      console.error("deleteComment failed", err);
+      // rollback on error
+      setLocalComments(prev);
+    }
+  }
 
   return (
     <View className="mb-4 overflow-hidden">
       {/* overlay (author) */}
       <View className="p-3 flex-row items-center">
         {post.authorProfileImage ? (
-          <Image source={{ uri: post.authorProfileImage }} className="w-9 h-9 rounded-full mr-3 border border-white/30" />
+          <Image
+            source={{ uri: post.authorProfileImage }}
+            className="w-9 h-9 rounded-full mr-3 border border-white/30"
+          />
         ) : (
-          <Ionicons name="person-circle" size={36} color="rgba(255,255,255,0.95)" style={{ marginRight: 12 }} />
+          <Ionicons
+            name="person-circle"
+            size={36}
+            color="rgba(255,255,255,0.95)"
+            style={{ marginRight: 12 }}
+          />
         )}
         <View className="flex-1">
           <Text className="text-white font-semibold" numberOfLines={1}>
@@ -38,18 +162,146 @@ export default function PostCard({ post }: { post: Post }) {
       {/* carousel */}
       <MediaCarousel media={post.media} />
 
+      {/* actions row: likes (placeholder) + comments */}
+      <View className="px-3 p-2 flex-row items-center justify-between">
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+          {/* placeholder Like icon (implement likes separately) */}
+          <TouchableOpacity activeOpacity={0.7}>
+            <Ionicons name="heart-outline" size={24} color="white" />
+          </TouchableOpacity>
+
+          {/* open comments */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setCommentsOpen(true)}
+          >
+            <Ionicons name="chatbubble-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* small comment count */}
+        <TouchableOpacity onPress={() => setCommentsOpen(true)}>
+          <Text className="text-gray-300 text-sm">
+            {(comments?.length ?? 0) + " comments"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* caption */}
       {post.caption ? (
-        <View className="p-3 pb-1 flex-row gap-2">
-          <Text className="font-semibold mb-1 text-white">{post.authorName}</Text>
+        <View className="px-3 pb-1 flex-row gap-2">
+          <Text className="font-semibold mb-1 text-white">
+            {post.authorName}
+          </Text>
           <Text className="text-gray-200">{post.caption}</Text>
         </View>
       ) : null}
+
+      {/* Comments modal */}
+      <Modal
+        visible={commentsOpen}
+        animationType="slide"
+        onRequestClose={() => setCommentsOpen(false)}
+      >
+        <SafeAreaView className="flex-1 bg-black">
+          {/* header */}
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-700">
+            <TouchableOpacity
+              onPress={() => setCommentsOpen(false)}
+              className="p-2"
+            >
+              <Ionicons name="arrow-back-sharp" size={20} color="#fff" />
+            </TouchableOpacity>
+            <Text className="text-white font-semibold text-2xl">Comments</Text>
+            <View className="w-11" />
+          </View>
+
+          {/* comments list */}
+          <FlatList
+            data={comments ?? []}
+            keyExtractor={(item) => String(item._id)}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            renderItem={({ item }) => (
+              <View className="mb-4">
+                <View className="flex-row items-start justify-between gap-4">
+                  <View className="flex-row items-start gap-2">
+                    {/* Author profile image */}
+                    {item.authorProfileImage ? (
+                      <Image
+                        source={{ uri: item.authorProfileImage }}
+                        className="w-9 h-9 rounded-full"
+                      />
+                    ) : (
+                      <Ionicons
+                        name="person-circle-outline"
+                        size={36}
+                        color="#666"
+                      />
+                    )}
+                    <View className="flex-col gap-1 justify-start items-start">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-white font-bold text-lg">
+                        {item.authorName ?? "Anonymous"}
+                      </Text>
+                      <Text className="text-gray-300 text-sm">
+                        {formatTime(item._creationTime)}
+                      </Text>
+                    </View>
+                    <Text className="text-gray-100 mt-1">{item.text}</Text>
+                    </View>
+                  </View>
+
+                  {currentUserId &&
+                  item.authorId &&
+                  String(item.authorId) === String(currentUserId) ? (
+                    <TouchableOpacity
+                      onPress={() => handleDeleteComment(item._id)}
+                      className="ml-2"
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color="#ff6b6b"
+                      />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View className="p-6 items-center">
+                <Text className="text-gray-500">
+                  No comments yet — be the first.
+                </Text>
+              </View>
+            )}
+          />
+
+          {/* comment input bar */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <View className="flex-row items-center p-3 bg-gray-900 border-t border-gray-800">
+              <TextInput
+                value={newComment}
+                onChangeText={setNewComment}
+                placeholder="Write a comment..."
+                placeholderTextColor="#666"
+                className="flex-1 p-3 bg-gray-700 text-white rounded-full"
+                onSubmitEditing={handleAddComment}
+                returnKeyType="send"
+              />
+              <TouchableOpacity onPress={handleAddComment} className="ml-2">
+                <Ionicons name="send-sharp" size={24} color="#0ea5e9" />
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
 
-/* ---------- helper: Instagram-style time ---------- */
 function formatTime(time: string | number | Date): string {
   const now = new Date();
   const postTime = new Date(time);

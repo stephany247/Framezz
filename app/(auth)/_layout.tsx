@@ -11,7 +11,19 @@ export default function AuthRoutesLayout() {
   return (
     <Stack>
       <Stack.Screen
-        name="index"
+        name="sign-in"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="sign-up"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="enter-code"
         options={{
           headerShown: false,
         }}

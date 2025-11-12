@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   Pressable,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
@@ -103,7 +104,7 @@ export default function SignUpPage() {
 
   if (pendingVerification) {
     return (
-      <View className="flex-1 p-5 justify-cente bg-gray-950">
+      <KeyboardAvoidingView className="flex-1 p-5 justify-cente bg-gray-950">
         <Text className="text-2xl font-bold mb-5 text-center">
           Verify your email
         </Text>
@@ -137,12 +138,12 @@ export default function SignUpPage() {
             <Text className="text-sky-500">Sign in</Text>
           </Link>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
   return (
-    <View className="flex-1 p-5 justify-center bg-gray-950">
+    <KeyboardAvoidingView className="flex-1 p-5 justify-center bg-gray-950">
       <Text className="text-2xl font-bold mb-5 text-center text-gray-100">
         Sign up
       </Text>
@@ -189,9 +190,9 @@ export default function SignUpPage() {
       <View className="flex-row items-center gap-2 justify-center mt-2">
         <Text className="text-sm text-gray-700">Already have an account?</Text>
         <Link href="/sign-in">
-          <Text className="text-sky-500">Sign in</Text>
+          <Text className="text-sky-500 uderline">Sign in</Text>
         </Link>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

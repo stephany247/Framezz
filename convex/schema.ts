@@ -13,14 +13,11 @@ export default defineSchema({
     author: v.string(),        // email or clerkId used as author
     text: v.string(),
   }),
-   posts: defineTable({
-    // foreign key to users collection
+  posts: defineTable({
     author: v.id("users"),
-    // denormalized author info for fast rendering
     authorName: v.string(),
     authorProfileImage: v.optional(v.string()),
 
-    // media is an array of objects { url, kind: "image" | "video" }
     media: v.array(v.object({
       url: v.string(),
       kind: v.string(), // "image" or "video"
@@ -29,4 +26,17 @@ export default defineSchema({
     // optional caption, but a post MUST have at least one media item (validated server-side)
     caption: v.optional(v.string()),
   }).index("by_author", ["author"]),
+
+  comments: defineTable({
+    postId: v.string(),
+    authorId: v.string(),
+    authorName: v.string(),
+    authorProfileImage: v.optional(v.string()),
+    text: v.string(),
+  }).index("by_post", ["postId"]),
+
+  likes: defineTable({
+    postId: v.string(),
+    userId: v.string(),
+  }).index("by_post_user", ["postId", "userId"]).index("by_post", ["postId"])
 });

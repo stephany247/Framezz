@@ -3,26 +3,22 @@ import React from "react";
 import { FlatList } from "react-native";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import PostCard from "@/components/PostCard";
+import PostCard, { Post } from "@/components/PostCard";
+import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
 
 export type Media = { kind: string; url: string; poster?: string };
-type Post = {
-  _id: string;
-  _creationTime: string | number | Date;
-  authorName?: string;
-  authorProfileImage?: string;
-  media?: Media[];
-  caption?: string;
-};
 
 export default function Feed() {
   const posts = useQuery(api.posts.getAllPosts) ?? [];
+  const { userId: currentUserId } = useStoreUserEffect();
 
   return (
     <FlatList
       data={posts as Post[]}
       keyExtractor={(item) => String(item._id)}
-      renderItem={({ item }) => <PostCard post={item as Post} />}
+      renderItem={({ item }) => (
+        <PostCard post={item as Post} currentUserId={currentUserId} />
+      )}
       className="bg-black"
     />
   );
