@@ -15,10 +15,10 @@ import {
 import { useVideoPlayer, VideoView } from "expo-video";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Media } from "@/utils/types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-export type Media = { kind: string; url: string; poster?: string };
 
 function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
   const player = useVideoPlayer({ uri: url } as unknown as any as any);

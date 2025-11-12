@@ -1,4 +1,3 @@
-// app/(tabs)/_layout.tsx
 import React from "react";
 import { Tabs } from "expo-router";
 import { View, Pressable } from "react-native";
@@ -10,22 +9,15 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
     <Pressable
       onPress={onPress}
       style={{
-        top: -18,
+        top: -24,
         justifyContent: "center",
         alignItems: "center",
         elevation: 6,
       }}
+      accessibilityRole="button"
+      accessibilityLabel="Create post"
     >
-      <View
-        style={{
-          width: 54,
-          height: 54,
-          borderRadius: 32,
-          backgroundColor: "#0ea5e9",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <View className="w-16 h-16 rounded-full bg-sky-500 justify-center items-center shadow-lg">
         <Ionicons name="add" size={24} color="#fff" />
       </View>
     </Pressable>
@@ -40,7 +32,6 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: true,
         headerTitle: "Framez",
-        // title: "Framez",
         headerTitleStyle: {
           fontWeight: "700",
           fontSize: 24,
@@ -49,8 +40,9 @@ export default function TabsLayout() {
         },
         headerStyle: {
           backgroundColor: "#000",
+          borderBottomWidth: 1,
+          borderBottomColor: "#374151",
         },
-        // headerTitleAlign: "center",
         tabBarShowLabel: false,
         tabBarStyle: {
           height: 64,
@@ -73,6 +65,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="create"
         options={{

@@ -17,10 +17,9 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignOutButton } from "@/components/SignOutButton";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import PostCard, { Post } from "@/components/PostCard";
+import PostCard from "@/components/PostCard";
 import MediaCarousel from "@/components/MedialCarousel";
-import { Media } from "./feed";
-
+import { Post } from "@/utils/types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TILE_SIZE = Math.floor(SCREEN_WIDTH / 3);
@@ -64,14 +63,13 @@ function ProfileContent() {
         typeof b._creationTime === "number"
           ? b._creationTime
           : new Date(b._creationTime).getTime();
-      return tb - ta; // newest first
+      return tb - ta;
     });
   }, [myPosts]);
 
   const postsCount = sortedPosts.length;
 
-  // modal states:
-  const [browserIndex, setBrowserIndex] = useState<number | null>(null); // when set => open full post browser
+  const [browserIndex, setBrowserIndex] = useState<number | null>(null);
   const [carouselOpen, setCarouselOpen] = useState<{
     post: Post;
     mediaIndex: number;
@@ -80,7 +78,7 @@ function ProfileContent() {
   if (!profile) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color="#fff" size="large" />
+        <ActivityIndicator color="#0ea5e9" size="large" />
         <Text className="text-gray-300 mt-2">Loading profile…</Text>
       </View>
     );
@@ -88,12 +86,12 @@ function ProfileContent() {
 
   const avatarUrl = profile.profileImage ?? user?.imageUrl ?? null;
   const displayName =
-  profile?.username ||
-  profile?.name ||
-  user?.username ||
-  user?.firstName ||
-  user?.fullName ||
-  "Anonymous";
+    profile?.username ||
+    profile?.name ||
+    user?.username ||
+    user?.firstName ||
+    user?.fullName ||
+    "Anonymous";
 
   const email =
     user?.primaryEmailAddress?.emailAddress ??
@@ -104,15 +102,14 @@ function ProfileContent() {
     setBrowserIndex(index);
   }
 
-  // open media carousel modal (keeps old behavior)
   function openCarousel(post: Post, mediaIndex = 0) {
     setCarouselOpen({ post, mediaIndex });
   }
 
   return (
-    <View>
+    <View className="flex-1">
       {/* Header */}
-      <View className="px-4 pb-6 border-b border-gray-800 flex-row items-center">
+      <View className="px-4 pb-6 border-b border-gray-800 flex-row items-center bg-black">
         {avatarUrl ? (
           <Image
             source={{ uri: avatarUrl }}
@@ -123,7 +120,6 @@ function ProfileContent() {
             name="person-circle"
             size={60}
             color="rgba(255,255,255,0.95)"
-            style={{ marginRight: 12 }}
           />
         )}
 
@@ -136,51 +132,43 @@ function ProfileContent() {
           ) : null}
         </View>
 
-        <View className="ml-2 bg-[#0ea5e9] rounded-lg px-4 py-2">
-          <SignOutButton />
-        </View>
+        <SignOutButton />
       </View>
 
-      {/* Grid */}
+      {/* Grid / Empty */}
       {postsCount === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-400 font-medium">You haven't posted yet.</Text>
+          <Text className="text-gray-400 font-medium">
+            You haven't posted yet.
+          </Text>
         </View>
       ) : (
         <FlatList
           data={sortedPosts}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => String(item._id)}
           numColumns={3}
           showsVerticalScrollIndicator={false}
           renderItem={({ item, index }) => (
             <PostGridTile
               post={item}
-              // open full feed browser at this post
               onOpenBrowser={() => openFullBrowser(index)}
-              // open media carousel at this post (fallback)
               onOpenCarousel={(mediaIndex = 0) =>
                 openCarousel(item, mediaIndex)
               }
             />
           )}
+          contentContainerStyle={{ backgroundColor: "#000" }}
         />
       )}
 
-      {/* Full-feed browser modal: scroll list of posts and show PostCard; initial set by browserIndex */}
+      {/* Full feed browser modal */}
       <Modal
         visible={browserIndex !== null}
         animationType="slide"
         onRequestClose={() => setBrowserIndex(null)}
-        statusBarTranslucent={false}
-        transparent={false}
       >
-        <View style={{ flex: 1, backgroundColor: "#000" }}>
-          {/* Make sure the status bar is opaque */}
-          <StatusBar
-            backgroundColor="#000"
-            barStyle="light-content"
-            translucent={false}
-          />
+        <View className="flex-1 bg-black">
+          <StatusBar backgroundColor="#000" barStyle="light-content" />
           <SafeAreaView className="flex-1 bg-black">
             <View className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity
@@ -190,7 +178,7 @@ function ProfileContent() {
                 <Ionicons name="arrow-back-sharp" size={20} color="#fff" />
               </TouchableOpacity>
               <Text className="text-white font-semibold text-2xl">Posts</Text>
-              <View style={{ width: 44 }} />
+              <View className="w-11" />
             </View>
 
             <FullPostBrowser
@@ -203,7 +191,7 @@ function ProfileContent() {
         </View>
       </Modal>
 
-      {/* Media carousel modal (old behavior) */}
+      {/* Media carousel modal */}
       <Modal
         visible={!!carouselOpen}
         animationType="slide"
@@ -233,7 +221,7 @@ function ProfileContent() {
   );
 }
 
-/* ---------- FullPostBrowser: shows a long list of PostCard and scrolls to startIndex ---------- */
+//  FullPostBrowser
 function FullPostBrowser({
   posts,
   startIndex,
@@ -248,7 +236,6 @@ function FullPostBrowser({
   const listRef = useRef<FlatList<Post> | null>(null);
 
   useEffect(() => {
-    // wait a tick to ensure FlatList measured, then scroll to index
     const t = setTimeout(() => {
       if (!listRef.current) return;
       try {
@@ -258,8 +245,7 @@ function FullPostBrowser({
           viewPosition: 0.5,
         });
       } catch (e) {
-        // if scrollToIndex fails (rare with variable heights), try scrollToOffset fallback
-        // estimate offset by startIndex * averagePostHeight if you have that
+        // ignore; variable heights might cause issues
       }
     }, 60);
     return () => clearTimeout(t);
@@ -269,10 +255,9 @@ function FullPostBrowser({
     <FlatList
       ref={listRef}
       data={posts}
-      keyExtractor={(p) => p._id}
+      keyExtractor={(p) => String(p._id)}
       renderItem={({ item }) => (
         <View>
-          {/* PostCard already renders post header, media carousel etc */}
           <PostCard post={item} />
         </View>
       )}
@@ -280,7 +265,7 @@ function FullPostBrowser({
   );
 }
 
-/* ---------- grid tile (preview badge + open browser/carousel) ---------- */
+// PostGridTile
 function PostGridTile({
   post,
   onOpenBrowser,
@@ -295,11 +280,11 @@ function PostGridTile({
   const uri = first?.url ?? null;
   const isVideo = first?.kind === "video";
 
-  // tapping the tile opens the full-feed browser at this post
   return (
     <TouchableOpacity onPress={onOpenBrowser} activeOpacity={0.9}>
       <View
-        style={{ width: TILE_SIZE, height: TILE_SIZE, backgroundColor: "#111" }}
+        style={{ width: TILE_SIZE, height: TILE_SIZE }}
+        className="bg-[#0b0b0b]"
       >
         {uri ? (
           <Image
@@ -308,45 +293,19 @@ function PostGridTile({
           />
         ) : (
           <View
-            style={{
-              width: TILE_SIZE,
-              height: TILE_SIZE,
-              backgroundColor: "#111",
-            }}
+            style={{ width: TILE_SIZE, height: TILE_SIZE }}
+            className="bg-[#0b0b0b]"
           />
         )}
 
-        {/* quick badge/preview overlay */}
-        <View
-          style={{
-            position: "absolute",
-            left: 6,
-            top: 6,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          {isVideo ? (
-            <View
-              style={{
-                backgroundColor: "rgba(0,0,0,0.5)",
-                padding: 4,
-                borderRadius: 6,
-              }}
-            >
+        <View className="absolute left-1.5 top-1.5 flex-row items-center">
+          <View className="bg-black/50 p-1 rounded-md">
+            {isVideo ? (
               <Ionicons name="videocam" size={12} color="#fff" />
-            </View>
-          ) : (
-            <View
-              style={{
-                backgroundColor: "rgba(0,0,0,0.5)",
-                padding: 4,
-                borderRadius: 6,
-              }}
-            >
+            ) : (
               <Ionicons name="resize" size={12} color="#fff" />
-            </View>
-          )}
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>

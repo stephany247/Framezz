@@ -21,7 +21,6 @@ export default function SignInCTA({ className }: AppProps) {
     );
   }
 
-  // mobile: push to your native sign-in screen (you build this using useSignIn)
   return (
     <Pressable
       onPress={() => router.push("/(auth)/sign-in")}
