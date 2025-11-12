@@ -54,11 +54,21 @@ export default function PostCard({
   });
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
+  const likesQuery = useQuery(api.likes.getLikesByPost, {
+    postId: post._id,
+    limit: 200,
+  });
+  const toggleLike = useMutation(api.likes.toggleLike);
+  const likeCountQuery = useQuery(api.likes.getLikeCount, { postId: post._id });
 
   // local state for modal & composer
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [localComments, setLocalComments] = useState<Comment[] | null>(null);
+  const [localLikes, setLocalLikes] = useState<{ userId: string }[] | null>(
+    null
+  );
+  const [likersOpen, setLikersOpen] = useState(false);
 
   // unify runtime type: use localComments when present, otherwise server streaming results.
   const comments: Comment[] = useMemo(() => {
@@ -134,6 +144,60 @@ export default function PostCard({
     }
   }
 
+  // unify likes array (server or local)
+  const likes = useMemo(() => {
+    if (localLikes) return localLikes;
+    if (Array.isArray(likesQuery)) {
+      // likesQuery items contain userId and _id; normalize to { userId }
+      return (likesQuery as any[]).map((l) => ({ userId: String(l.userId) }));
+    }
+    return [];
+  }, [localLikes, likesQuery]);
+
+  // helper: whether current user liked this post
+  const currentUserIdStr = currentUserId ? String(currentUserId) : null;
+  const hasLiked =
+    !!currentUserIdStr &&
+    likes.some((l) => String(l.userId) === currentUserIdStr);
+  const likeCount = localLikes
+    ? localLikes.length
+    : Array.isArray(likesQuery)
+      ? (likesQuery as any[]).length
+      : (likeCountQuery ?? 0);
+
+  async function handleToggleLike() {
+    if (!currentUserId) {
+      // optionally prompt to auth; for now just return
+      return;
+    }
+
+    const uid = String(currentUserId);
+    const prev =
+      localLikes ??
+      (Array.isArray(likesQuery)
+        ? (likesQuery as any[]).map((l) => ({ userId: String(l.userId) }))
+        : []);
+
+    // optimistic update: add or remove locally
+    if (prev.some((l) => l.userId === uid)) {
+      // remove
+      const next = prev.filter((l) => l.userId !== uid);
+      setLocalLikes(next);
+    } else {
+      // add
+      setLocalLikes([{ userId: uid }, ...prev]);
+    }
+
+    try {
+      await toggleLike({ postId: post._id } as any);
+      // server will stream new likes via getLikesByPost if it changes; we keep local until server replaces it
+    } catch (err) {
+      console.error("toggleLike failed", err);
+      // rollback
+      setLocalLikes(prev);
+    }
+  }
+
   return (
     <View className="mb-4 overflow-hidden">
       {/* overlay (author) */}
@@ -164,19 +228,42 @@ export default function PostCard({
 
       {/* actions row: likes (placeholder) + comments */}
       <View className="px-3 p-2 flex-row items-center justify-between">
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <View className="flex-row items-center gap-4">
           {/* placeholder Like icon (implement likes separately) */}
-          <TouchableOpacity activeOpacity={0.7}>
-            <Ionicons name="heart-outline" size={24} color="white" />
-          </TouchableOpacity>
+          <View className="flex-row gap-1 items-center">
+            <TouchableOpacity activeOpacity={0.7} onPress={handleToggleLike}>
+              {hasLiked ? (
+                <Ionicons name="heart" size={24} color="#ff6b6b" />
+              ) : (
+                <Ionicons name="heart-outline" size={24} color="white" />
+              )}
+            </TouchableOpacity>
+
+            {/* show like count next to comments */}
+            <TouchableOpacity
+              onPress={() => {
+                setLikersOpen(true);
+              }}
+            >
+              <Text className="text-gray-300 text-lg font-medium">
+                {likeCount}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* open comments */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setCommentsOpen(true)}
-          >
-            <Ionicons name="chatbubble-outline" size={24} color="white" />
-          </TouchableOpacity>
+
+          <View className="flex-row gap-1 items-center">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setCommentsOpen(true)}
+            >
+              <Ionicons name="chatbubble-outline" size={24} color="white" />
+            </TouchableOpacity>
+            <Text className="text-gray-300 text-lg font-medium">
+              {comments?.length ?? 0}
+            </Text>
+          </View>
         </View>
 
         {/* small comment count */}
@@ -239,15 +326,15 @@ export default function PostCard({
                       />
                     )}
                     <View className="flex-col gap-1 justify-start items-start">
-                    <View className="flex-row items-center gap-2">
-                      <Text className="text-white font-bold text-lg">
-                        {item.authorName ?? "Anonymous"}
-                      </Text>
-                      <Text className="text-gray-300 text-sm">
-                        {formatTime(item._creationTime)}
-                      </Text>
-                    </View>
-                    <Text className="text-gray-100 mt-1">{item.text}</Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-white font-bold text-lg">
+                          {item.authorName ?? "Anonymous"}
+                        </Text>
+                        <Text className="text-gray-300 text-sm">
+                          {formatTime(item._creationTime)}
+                        </Text>
+                      </View>
+                      <Text className="text-gray-100 mt-1">{item.text}</Text>
                     </View>
                   </View>
 
@@ -296,6 +383,75 @@ export default function PostCard({
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
+      <Modal
+        visible={likersOpen}
+        animationType="slide"
+        onRequestClose={() => setLikersOpen(false)}
+      >
+        <SafeAreaView className="flex-1 bg-black">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-700">
+            <TouchableOpacity
+              onPress={() => setLikersOpen(false)}
+              className="p-2"
+            >
+              <Ionicons name="arrow-back-sharp" size={20} color="#fff" />
+            </TouchableOpacity>
+            <Text className="text-white font-semibold text-2xl">Likes</Text>
+            <View className="w-11" />
+          </View>
+
+          <FlatList
+            data={Array.isArray(likesQuery) ? likesQuery : []}
+            keyExtractor={(item) => String(item.likeId ?? item.userId)}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            renderItem={({ item }) => (
+              <View className="mb-4 flex-row items-center">
+                {item.profileImage ? (
+                  <Image
+                    source={{ uri: item.profileImage }}
+                    className="w-10 h-10 rounded-full mr-3"
+                  />
+                ) : (
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={40}
+                    color="#666"
+                    style={{ marginRight: 12 }}
+                  />
+                )}
+
+                <View style={{ flex: 1 }}>
+                  <Text className="text-white font-semibold">
+                    {item.username}
+                  </Text>
+                  {item.likedAt ? (
+                    <Text className="text-gray-300 text-sm">
+                      {formatTime(item.likedAt)}
+                    </Text>
+                  ) : null}
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={handleToggleLike}
+                >
+                  {hasLiked ? (
+                    <Ionicons name="heart" size={24} color="#ff6b6b" />
+                  ) : (
+                    <Ionicons name="heart-outline" size={24} color="white" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View className="p-6 items-center">
+                <Text className="text-gray-500">No likes yet</Text>
+              </View>
+            )}
+          />
         </SafeAreaView>
       </Modal>
     </View>

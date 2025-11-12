@@ -36,7 +36,7 @@ export default defineSchema({
   }).index("by_post", ["postId"]),
 
   likes: defineTable({
-    postId: v.string(),
-    userId: v.string(),
+    postId: v.id("posts"),
+    userId: v.id("users"),
   }).index("by_post_user", ["postId", "userId"]).index("by_post", ["postId"])
 });
