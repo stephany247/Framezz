@@ -1,50 +1,121 @@
-# Welcome to your Expo app 👋
+# 📸 Framez
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Framez** is a mobile social application built with **React Native**, **Expo**, **Clerk**, and **Convex**.  
+It allows users to share posts, explore others’ content, and view their profile activity — all in real time with smooth authentication and a clean modern UI.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Overview
+
+Framez demonstrates the integration of **real-time data**, **user authentication**, and **structured UI** in a mobile environment.  
+Each user can log in securely, create posts, and view their activity from their profile. The app focuses on performance, simplicity, and a polished interface.
+
+---
+
+## 🧠 Tech Stack
+
+- **React Native (Expo)** – UI framework for cross-platform mobile apps
+- **Clerk** – Authentication and user management
+- **Convex** – Real-time backend and data handling
+- **Cloudinary** – Image upload and hosting 
+- **EAS Build** – For app deployment and testing
+- **React Navigation** – For routing and navigation
+- **TypeScript** – Type safety and better developer experience
+
+---
+
+## ✨ Features
+
+- 🔐 Secure authentication via Clerk
+- 🧍‍♂️ User profiles with activity tracking
+- 🖼️ Create and share posts easily
+- 🖼️ Create and share posts with Cloudinary image uploads 
+- 💬 Real-time data updates using Convex
+- 🎨 Clean, responsive, and modern design
+- 📱 Works seamlessly on Android
+
+---
+
+## 🧩 Project Structure
+
+```bash
+Framez/
+├── app/
+│   ├── (auth)/         # Authentication screens
+│   ├── (tabs)/         # Main tab navigation (Home, Profile, etc.)
+│   ├── components/     # Reusable UI components
+│   └── utils/          # Clerk + Convex + Cloudinary integration logic
+├── convex/             # Convex backend functions
+├── assets/             # Images, icons, etc.
+├── package.json
+└── README.md
+
+```
+
+## ⚙️ Setup & Installation
+
+Follow these steps to run the project locally:
+
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/stephany247/Framezz.git
+   cd framez
+   ```
+
+2. Install dependencies
 
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-2. Start the app
+3. Setup Convex
+
+   ```bash
+   npx convex dev
+   ```
+
+   Create your Convex project and link it with:
+
+   ```bash
+   npx convex deploy
+   ```
+
+4. Setup Clerk
+
+   Create a Clerk project at https://clerk.com
+
+   Add your Frontend API Key and Publishable Key to .env
+
+   ```ini
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key_here
+   ```
+
+5. Start the app
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Live Preview
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+You can view and test the project online at:
 
-## Get a fresh project
+👉 **[Run on Appetize](https://appetize.io/app/b_hd3ittb7gwsjrwnwgobv43s35m)**
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
+## 🧾 License
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This project is licensed under the **MIT License**.  
+Feel free to use or modify for learning and portfolio purposes.
 
-## Learn more
+## 💡 Author
 
-To learn more about developing your project with Expo, look at the following resources:
+Developed by Stephanie Oguocha.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Built with ❤️ using React Native, Convex, and Clerk.
