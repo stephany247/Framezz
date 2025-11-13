@@ -73,6 +73,37 @@ export default function SignUpPage() {
     }
   };
 
+  // const onVerifyPress = async () => {
+  //   if (!isLoaded) return;
+  //   setLoading(true);
+  //   try {
+  //     const signUpAttempt = await signUp.attemptEmailAddressVerification({
+  //       code,
+  //     });
+  //     if (signUpAttempt.status === "complete") {
+  //       await setActive({ session: signUpAttempt.createdSessionId });
+  //       try {
+  //         await storeUser({ username });
+  //       } catch (err) {
+  //         console.warn("Failed to store username in DB:", err);
+  //       }
+  //       router.replace("/(tabs)/feed");
+  //     } else {
+  //       console.error("Verification incomplete:", signUpAttempt);
+  //       Alert.alert("Verification incomplete", "Check console for details.");
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Verify error:", err);
+  //     const msg =
+  //       err?.errors?.[0]?.longMessage ?? err?.message ?? "Verification failed.";
+  //     Alert.alert("Verification failed", String(msg));
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
   const onVerifyPress = async () => {
     if (!isLoaded) return;
     setLoading(true);
@@ -80,18 +111,58 @@ export default function SignUpPage() {
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       });
-      if (signUpAttempt.status === "complete") {
-        await setActive({ session: signUpAttempt.createdSessionId });
-        try {
-          await storeUser({ username });
-        } catch (err) {
-          console.warn("Failed to store username in DB:", err);
-        }
-        router.replace("/(tabs)/feed");
-      } else {
+      console.log("signUpAttempt:", signUpAttempt);
+
+      if (signUpAttempt.status !== "complete") {
         console.error("Verification incomplete:", signUpAttempt);
         Alert.alert("Verification incomplete", "Check console for details.");
+        return;
       }
+
+      const createdSessionId = signUpAttempt.createdSessionId;
+      console.log("createdSessionId:", createdSessionId);
+
+      if (!createdSessionId) {
+        // unexpected: no session id — abort and show message
+        Alert.alert("No session created", "Please try signing in instead.");
+        return;
+      }
+
+      // activate session
+      await setActive({ session: createdSessionId });
+      console.log(
+        "setActive returned; now waiting briefly for auth propagation..."
+      );
+
+      // wait a short bit for Clerk to propagate session/auth to other libs
+      await sleep(600);
+
+      // try storing user, with small retry loop (server needs auth present)
+      const maxTries = 4;
+      let lastErr: any = null;
+      for (let i = 0; i < maxTries; i++) {
+        try {
+          console.log(`Attempting storeUser (try ${i + 1})`);
+          await storeUser({ username });
+          lastErr = null;
+          break; // success
+        } catch (e) {
+          lastErr = e;
+          console.warn(`storeUser attempt ${i + 1} failed:`, e);
+          // If server says "Called store without authentication present", wait and retry
+          await sleep(500 * (i + 1));
+        }
+      }
+      if (lastErr) {
+        console.warn("Failed to store username after retries:", lastErr);
+        // Non-blocking: continue to app but show warning
+        Alert.alert(
+          "Saved session",
+          "Signed in, but username not stored. Please retry later."
+        );
+      }
+
+      router.replace("/(tabs)/feed");
     } catch (err: any) {
       console.error("Verify error:", err);
       const msg =

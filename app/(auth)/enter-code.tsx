@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSignIn } from "@clerk/clerk-expo";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function serializeError(err: any) {
   try {
@@ -60,7 +60,7 @@ export default function EnterCode() {
       const res: any = await (signIn as any).attemptFirstFactor({
         strategy: "email_code",
         code,
-        signInId,
+        // signInId,
       });
 
       if (res?.status === "complete") {
@@ -99,7 +99,7 @@ export default function EnterCode() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-black mt-12">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1 p-6 justify-center"
@@ -114,7 +114,7 @@ export default function EnterCode() {
           placeholder="6-digit code"
           keyboardType="number-pad"
           placeholderTextColor="#9CA3AF"
-          className="bg-[#0b1113] text-white rounded-md p-3 mb-4"
+          className="border border-gray-600 p-3 rounded-lg mb-5 text-gray-100 placeholder:text-gray-400"
           maxLength={8}
         />
 
@@ -128,7 +128,7 @@ export default function EnterCode() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-black font-medium">Verify code</Text>
+              <Text className="text-white font-semibold">Verify code</Text>
             )}
           </Pressable>
         </View>
@@ -139,7 +139,7 @@ export default function EnterCode() {
           <Pressable
             onPress={resendCode}
             disabled={resending}
-            className="w-full rounded-md px-4 py-3 items-center bg-transparent border border-gray-700"
+            className="w-full rounded-md px-4 py-3 items-center bg-transparent border border-gray-500"
             accessibilityRole="button"
           >
             {resending ? (

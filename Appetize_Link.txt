@@ -1,0 +1,8 @@
+Please find attached the Appetize preview link. I had some issues building the app, so I’m sharing the hosted version here.
+
+Appetize Preview Link:
+https://appetize.io/app/b_hd3ittb7gwsjrwnwgobv43s35m
+
+Notes:
+- Built with EAS Preview
+- Android version

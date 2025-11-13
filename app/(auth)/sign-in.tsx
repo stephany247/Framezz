@@ -145,7 +145,7 @@ export default function Page() {
 
       {loading ? (
         <Pressable className="bg-sky-500 py-3 rounded-lg items-center">
-          <ActivityIndicator />
+          <ActivityIndicator color="#fff" />
         </Pressable>
       ) : (
         <TouchableOpacity

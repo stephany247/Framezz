@@ -1,5 +1,12 @@
 import React from "react";
-import { Modal, View, Text, TouchableOpacity, FlatList, Image } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Image,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LikeItem } from "@/utils/types";
@@ -13,7 +20,13 @@ type Props = {
   hasLiked: boolean;
 };
 
-export default function LikersModal({ visible, onClose, likes, onToggleLike, hasLiked }: Props) {
+export default function LikersModal({
+  visible,
+  onClose,
+  likes,
+  onToggleLike,
+  hasLiked,
+}: Props) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView className="flex-1 bg-black">
@@ -32,17 +45,35 @@ export default function LikersModal({ visible, onClose, likes, onToggleLike, has
           renderItem={({ item }) => (
             <View className="mb-4 flex-row items-center">
               {item.profileImage ? (
-                <Image source={{ uri: item.profileImage }} className="w-10 h-10 rounded-full mr-3" />
+                <Image
+                  source={{ uri: item.profileImage }}
+                  className="w-10 h-10 rounded-full mr-3"
+                />
               ) : (
-                <Ionicons name="person-circle-outline" size={40} color="#666" style={{ marginRight: 12 }} />
+                <Ionicons
+                  name="person-circle-outline"
+                  size={40}
+                  color="#666"
+                  style={{ marginRight: 12 }}
+                />
               )}
               <View style={{ flex: 1 }}>
-                <Text className="text-white font-semibold">{item.username}</Text>
-                {item.likedAt ? <Text className="text-gray-300 text-sm">{formatTime(item.likedAt)}</Text> : null}
+                <Text className="text-white font-semibold">
+                  {item.username}
+                </Text>
+                {item.likedAt ? (
+                  <Text className="text-gray-300 text-sm">
+                    {formatTime(item.likedAt)}
+                  </Text>
+                ) : null}
               </View>
 
               <TouchableOpacity activeOpacity={0.7} onPress={onToggleLike}>
-                {hasLiked ? <Ionicons name="heart" size={24} color="#ff6b6b" /> : <Ionicons name="heart-outline" size={24} color="white" />}
+                {hasLiked ? (
+                  <Ionicons name="heart" size={24} color="#ff6b6b" />
+                ) : (
+                  <Ionicons name="heart-outline" size={24} color="white" />
+                )}
               </TouchableOpacity>
             </View>
           )}

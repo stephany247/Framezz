@@ -22,7 +22,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "com.stephany247.Framez"
     },
     "web": {
       "output": "static",

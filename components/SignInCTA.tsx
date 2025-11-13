@@ -1,6 +1,6 @@
-import { Platform, Pressable, Text, View } from "react-native";
-import { SignInButton } from "@clerk/clerk-react";
+// import { SignInButton } from "@clerk/clerk-react";
 import { useRouter } from "expo-router";
+import { Platform, Pressable, Text, View } from "react-native";
 
 type AppProps = {
   className?: string;
@@ -9,24 +9,14 @@ type AppProps = {
 export default function SignInCTA({ className }: AppProps) {
   const router = useRouter();
   const btnStyles =
-    "bg-blue-500 hover:to-blue-500/70 py-3 w-1/2 text-white font-medium inline-flex items-center justify-center rounded-lg";
-
-  if (Platform.OS === "web") {
-    return (
-      <SignInButton mode="modal">
-        <View className={`${btnStyles} ${className}`}>
-          <Text style={{ color: "#fff" }}>Get started</Text>
-        </View>
-      </SignInButton>
-    );
-  }
+    "bg-sky-500 hover:to-sky-500/70 py-3 w-1/2 text-white font-medium inline-flex items-center justify-center rounded-lg";
 
   return (
     <Pressable
       onPress={() => router.push("/(auth)/sign-in")}
       className={`${btnStyles} ${className}`}
     >
-      <Text style={{ color: "#fff" }}>Get started</Text>
+      <Text className="text-white font-medium text-lg">Get started</Text>
     </Pressable>
   );
 }

@@ -5,18 +5,18 @@ import "../global.css";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { api } from "@/convex/_generated/api";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
-import { SignOutButton, useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import SignInCTA from "@/components/SignInCTA";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default function App() {
   const { isLoading, isAuthenticated } = useStoreUserEffect();
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-black">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
           <Text className="mt-3 text-gray-500">Loading…</Text>
@@ -43,19 +43,19 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-black">
       <View className="flex-1 items-center justify-center px-6 space-y-6">
         <Text className="text-6xl font-bold mb-2 text-sky-500 italic">
-          Framez
+          Framez{" "}
+          <MaterialCommunityIcons
+            name="camera-plus"
+            size={40}
+            color="#0ea5e9"
+          />
         </Text>
 
         <Text className="text-gray-500 mb-8 text-center text-2xl">
           Share your moments in frames
-          <MaterialCommunityIcons
-            name="camera-plus"
-            size={24}
-            color="#0ea5e9"
-          />
         </Text>
 
         <SignInCTA />

@@ -104,18 +104,6 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
 
 function MediaImage({ url }: { url: string }) {
   return (
-    // <>
-    //   <ImageBackground
-    //     source={{ uri: url }}
-    //     style={{
-    //       width: SCREEN_WIDTH,
-    //       height: SCREEN_WIDTH,
-    //       aspectRatio: "1",
-    //       backgroundColor: " #1f2937",
-    //     }}
-    //     imageStyle={{ resizeMode: "cover" }}
-    //   />
-
     <View
       style={{
         width: SCREEN_WIDTH,
@@ -135,7 +123,6 @@ function MediaImage({ url }: { url: string }) {
         imageStyle={{ resizeMode: "contain" }}
       />
     </View>
-    // </>
   );
 }
 

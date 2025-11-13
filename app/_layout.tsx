@@ -22,6 +22,8 @@ if (!CONVEX_URL || !/^https?:\/\//.test(CONVEX_URL)) {
 
 const convexClient = new ConvexReactClient(CONVEX_URL);
 
+
+
 function LoadingFallBack({ label = "Loading…" }: { label?: string }) {
   return (
     <View className="flex-1 items-center justify-center bg-black">

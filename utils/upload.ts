@@ -1,4 +1,3 @@
-// src/lib/upload.ts
 export async function uploadToCloudinary(uri: string) {
     // replace with your values
     const CLOUD_NAME = "framez-cloud";

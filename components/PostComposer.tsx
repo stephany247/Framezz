@@ -283,11 +283,13 @@ export default function PostComposer() {
             className={`flex-row items-center px-4 py-2 rounded-md ${uploading ? "bg-gray-700" : "bg-sky-500"}`}
           >
             {uploading ? (
-              <ActivityIndicator
-                size="small"
-                color=" #0ea5e9"
-                className="mr-2"
-              />
+              <View>
+                <ActivityIndicator
+                  size="small"
+                  color=" #0ea5e9"
+                  className="mr-2"
+                />
+              </View>
             ) : (
               <Ionicons
                 name="cloud-upload"

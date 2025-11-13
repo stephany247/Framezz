@@ -26,7 +26,10 @@ export default function PostCard({
   });
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
-  const likesQuery = useQuery(api.likes.getLikesByPost, { postId: post._id, limit: 200 });
+  const likesQuery = useQuery(api.likes.getLikesByPost, {
+    postId: post._id,
+    limit: 200,
+  });
   const toggleLike = useMutation(api.likes.toggleLike);
   const likeCountQuery = useQuery(api.likes.getLikeCount, { postId: post._id });
 
@@ -34,13 +37,17 @@ export default function PostCard({
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [localComments, setLocalComments] = useState<Comment[] | null>(null);
-  const [localLikes, setLocalLikes] = useState<{ userId: string }[] | null>(null);
+  const [localLikes, setLocalLikes] = useState<{ userId: string }[] | null>(
+    null
+  );
   const [likersOpen, setLikersOpen] = useState(false);
 
   const comments: Comment[] = useMemo(() => {
     return (
       localComments ??
-      (Array.isArray(commentsQuery) ? (commentsQuery as unknown as Comment[]) : [])
+      (Array.isArray(commentsQuery)
+        ? (commentsQuery as unknown as Comment[])
+        : [])
     );
   }, [localComments, commentsQuery]);
 
@@ -66,22 +73,31 @@ export default function PostCard({
     setNewComment("");
 
     try {
-      const res = await createComment({ postId: post._id, text: trimmed } as any);
+      const res = await createComment({
+        postId: post._id,
+        text: trimmed,
+      } as any);
       if (res && (res as any)._id) {
         setLocalComments((prev) =>
-          (prev ?? []).map((c) => (c._id === temp._id ? { ...c, _id: (res as any)._id } : c))
+          (prev ?? []).map((c) =>
+            c._id === temp._id ? { ...c, _id: (res as any)._id } : c
+          )
         );
       }
     } catch (err) {
       console.error("createComment failed", err);
-      setLocalComments((prev) => (prev ?? []).filter((c) => c._id !== temp._id));
+      setLocalComments((prev) =>
+        (prev ?? []).filter((c) => c._id !== temp._id)
+      );
     }
   }
 
   async function handleDeleteComment(commentId: Id<"comments"> | string) {
     const prev =
       localComments ??
-      (Array.isArray(commentsQuery) ? (commentsQuery as unknown as Comment[]) : []);
+      (Array.isArray(commentsQuery)
+        ? (commentsQuery as unknown as Comment[])
+        : []);
     setLocalComments(prev.filter((c) => c._id !== commentId));
     try {
       await deleteComment({ commentId: commentId as Id<"comments"> } as any);
@@ -100,14 +116,24 @@ export default function PostCard({
   }, [localLikes, likesQuery]);
 
   const currentUserIdStr = currentUserId ? String(currentUserId) : null;
-  const hasLiked = !!currentUserIdStr && likes.some((l) => String(l.userId) === currentUserIdStr);
-  const likeCount = localLikes ? localLikes.length : Array.isArray(likesQuery) ? (likesQuery as any[]).length : (likeCountQuery ?? 0);
+  const hasLiked =
+    !!currentUserIdStr &&
+    likes.some((l) => String(l.userId) === currentUserIdStr);
+  const likeCount = localLikes
+    ? localLikes.length
+    : Array.isArray(likesQuery)
+      ? (likesQuery as any[]).length
+      : (likeCountQuery ?? 0);
 
   async function handleToggleLike() {
     if (!currentUserId) return;
 
     const uid = String(currentUserId);
-    const prev = localLikes ?? (Array.isArray(likesQuery) ? (likesQuery as any[]).map((l) => ({ userId: String(l.userId) })) : []);
+    const prev =
+      localLikes ??
+      (Array.isArray(likesQuery)
+        ? (likesQuery as any[]).map((l) => ({ userId: String(l.userId) }))
+        : []);
 
     if (prev.some((l) => l.userId === uid)) {
       const next = prev.filter((l) => l.userId !== uid);
@@ -125,7 +151,9 @@ export default function PostCard({
   }
 
   // Transform likesQuery for LikersModal (keep server shape)
-  const likersList: LikeItem[] = Array.isArray(likesQuery) ? (likesQuery as any[]) : [];
+  const likersList: LikeItem[] = Array.isArray(likesQuery)
+    ? (likesQuery as any[])
+    : [];
 
   return (
     <View className="mb-4 overflow-hidden">
