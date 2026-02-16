@@ -9,7 +9,7 @@ type AppProps = {
 export default function SignInCTA({ className }: AppProps) {
   const router = useRouter();
   const btnStyles =
-    "bg-sky-500 hover:to-sky-500/70 py-3 w-1/2 text-white font-medium inline-flex items-center justify-center rounded-lg";
+    "bg-sky-500 hover:to-sky-500/70 py-3 w-4/5 text-white font-medium inline-flex items-center justify-center rounded-full";
 
   return (
     <Pressable

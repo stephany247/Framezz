@@ -1,6 +1,6 @@
 // app/_app.tsx  (or wherever this component lives)
 import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Image } from "react-native";
 import "../global.css";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { api } from "@/convex/_generated/api";
@@ -43,23 +43,23 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 items-center bg-white dark:bg-black">
       <View className="flex-1 items-center justify-center px-6 space-y-6">
-        <Text className="text-6xl font-bold mb-2 text-sky-500 italic">
-          Framez{" "}
-          <MaterialCommunityIcons
-            name="camera-plus"
-            size={40}
-            color="#0ea5e9"
+        <View className="p-8 mb-8 bg-sky-500/10 rounded-2xl">
+          <Image
+            source={require("../assets/images/icon-logo.png")}
+            className="w-150 h-150"
           />
+        </View>
+        <Text className="text-6xl font-bold text-black dark:text-white">
+          Framez
         </Text>
 
-        <Text className="text-gray-500 mb-8 text-center text-2xl">
-          Share your moments in frames
+        <Text className="text-gray-500 mb-8 text-center text-base font-bold uppercase tracking-widest">
+          Capture Life
         </Text>
-
-        <SignInCTA />
       </View>
+      <SignInCTA />
     </SafeAreaView>
   );
 }
