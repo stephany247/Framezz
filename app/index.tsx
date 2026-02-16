@@ -10,6 +10,7 @@ import { useQuery } from "convex/react";
 import SignInCTA from "@/components/SignInCTA";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SignOutButton } from "@/components/SignOutButton";
+import { Redirect } from "expo-router";
 
 export default function App() {
   const { isLoading, isAuthenticated } = useStoreUserEffect();
@@ -25,22 +26,9 @@ export default function App() {
     );
   }
 
-  if (isAuthenticated) {
-    return (
-      <SafeAreaView className="flex-1 bg-black">
-        <View className="flex-1 items-center justify-center space-y-6 px-6">
-          <Text className="text-2xl font-bold text-sky-500">
-            Welcome back, <AuthenticatedHeader />
-          </Text>
-          <Text className="text-gray-500 text-center">
-            You&apos;re signed in and ready to go!
-          </Text>
-
-          <SignOutButton />
-        </View>
-      </SafeAreaView>
-    );
-  }
+ if (isAuthenticated) {
+  return <Redirect href="/(tabs)/feed" />;
+}
 
   return (
     <SafeAreaView className="flex-1 items-center bg-white dark:bg-black">

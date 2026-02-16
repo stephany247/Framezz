@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
 
       {step === "email" ? (
         <>
-          <Text className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+          <Text className="mb-2 text-lg font-medium text-gray-600 dark:text-gray-400">
             Email
           </Text>
           <TextInput
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
             onChangeText={setCode}
           />
 
-          <Text className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+          <Text className="mb-2 font-medium text-gray-600 dark:text-gray-400">
             New Password
           </Text>
 
@@ -155,7 +155,7 @@ export default function ForgotPasswordPage() {
             />
             <Pressable
               onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-4"
+              className="absolute right-4 top-3"
             >
               <Text className="text-gray-500">
                 <Feather name={showPassword ? "eye-off" : "eye"} size={24} />
