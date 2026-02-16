@@ -8,9 +8,11 @@ import {
   Alert,
   Pressable,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -19,6 +21,7 @@ export default function Page() {
   const [identifier, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSignInPress = async () => {
     if (!isLoaded) {
@@ -36,7 +39,7 @@ export default function Page() {
       const a: any = attempt;
 
       const emailFactor = a.supportedFirstFactors?.find(
-        (f: any) => f.strategy === "email_code"
+        (f: any) => f.strategy === "email_code",
       );
 
       if (emailFactor?.emailAddressId) {
@@ -46,7 +49,7 @@ export default function Page() {
         });
         Alert.alert(
           "Verification code sent",
-          "Check your email for the verification code."
+          "Check your email for the verification code.",
         );
         router.push({
           pathname: "/(auth)/enter-code",
@@ -95,7 +98,7 @@ export default function Page() {
           });
           Alert.alert(
             "Magic link/code sent",
-            "Check your email for the code or link."
+            "Check your email for the code or link.",
           );
           return;
         }
@@ -104,7 +107,7 @@ export default function Page() {
         supported.some((s) => s?.startsWith?.("oauth") || s === "oauth")
       ) {
         Alert.alert(
-          "This account uses OAuth / SSO. Please sign in with the provider."
+          "This account uses OAuth / SSO. Please sign in with the provider.",
         );
         return;
       } else {
@@ -122,26 +125,64 @@ export default function Page() {
   };
 
   return (
-    <KeyboardAvoidingView className="flex-1 p-5 justify-center bg-gray-950">
-      <Text className="text-2xl font-bold mb-5 text-center text-gray-100">
-        Sign in
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 p-5 justify-center bg-gray-100 dark:bg-gray-950 gap-2"
+    >
+      <Text className="text-3xl font-bold text-center text-black dark:text-white">
+        Framez
+      </Text>
+      <Text className="text-gray-600 dark:text-gray-400 text-center mb-8">
+        Welcome back! Please enter your details.
       </Text>
 
-      <TextInput
-        className="border border-gray-600 p-3 rounded-lg mb-3 text-gray-100 placeholder:text-gray-400"
-        autoCapitalize="none"
-        value={identifier}
-        placeholder="Email or username"
-        onChangeText={setIdentifier}
-      />
+      {/* Email / Username */}
+      <View className="mb-4 gap-1">
+        <Text className="mb-1 text-lg font-medium text-gray-600 dark:text-gray-400">
+          Email or Username
+        </Text>
+        <TextInput
+          className="border border-gray-300 dark:border-gray-700 
+      bg-gray-50 dark:bg-gray-900
+      p-4 rounded-xl
+      text-black dark:text-white"
+          autoCapitalize="none"
+          value={identifier}
+          placeholder="your@email.com"
+          placeholderTextColor="#9CA3AF"
+          onChangeText={setIdentifier}
+        />
+      </View>
 
-      <TextInput
-        className="border border-gray-600 p-3 rounded-lg mb-4 text-gray-100 placeholder:text-gray-400"
-        value={password}
-        placeholder="Enter password"
-        secureTextEntry
-        onChangeText={setPassword}
-      />
+      {/* Password */}
+      <View className="mb-6 gap-1">
+        <Text className="mb-1 text-lg font-medium text-gray-600 dark:text-gray-400">
+          Password
+        </Text>
+
+        <View className="relative">
+          <TextInput
+            className="border border-gray-300 dark:border-gray-700 
+        bg-gray-50 dark:bg-gray-900
+        p-4 pr-12 rounded-xl
+        text-black dark:text-white"
+            secureTextEntry={!showPassword}
+            value={password}
+            placeholder="••••••••"
+            placeholderTextColor="#9CA3AF"
+            onChangeText={setPassword}
+          />
+
+          <Pressable
+            onPress={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-3"
+          >
+            <Text className="text-gray-500">
+              <Feather name={showPassword ? "eye-off" : "eye"} size={24} />
+            </Text>
+          </Pressable>
+        </View>
+      </View>
 
       {loading ? (
         <Pressable className="bg-sky-500 py-3 rounded-lg items-center">
@@ -150,18 +191,20 @@ export default function Page() {
       ) : (
         <TouchableOpacity
           onPress={onSignInPress}
-          className="bg-sky-500 py-3 mt-2 rounded-lg items-center"
+          className="bg-sky-500 py-4 mt-2 rounded-lg items-center"
         >
-          <Text className="text-white font-semibold">Continue</Text>
+          <Text className="text-white font-semibold text-xl">Log In</Text>
         </TouchableOpacity>
       )}
 
       {/* <View className="h-3" /> */}
 
       <View className="flex-row gap-2 items-center justify-center mt-2">
-        <Text className="text-gray-200">Don't have an account?</Text>
+        <Text className="text-gray-600 dark:text-gray-400">
+          Don't have an account?
+        </Text>
         <Link href="/sign-up">
-          <Text className="text-sky-500 underline">Sign up</Text>
+          <Text className="text-sky-500 font-semibold">Sign up for free</Text>
         </Link>
       </View>
     </KeyboardAvoidingView>

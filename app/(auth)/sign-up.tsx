@@ -310,14 +310,13 @@ export default function SignUpPage() {
         </TouchableOpacity>
       )}
 
-      <View className="h-3" />
 
-      <View className="flex-row items-center gap-2 justify-center">
+      <View className="flex-row items-center gap-2 justify-center mt-2">
         <Text className="text-gray-600 dark:text-gray-400">
           Already have an account?
         </Text>
         <Link href="/sign-in">
-          <Text className="text-sky-500 underline">Log in</Text>
+          <Text className="text-sky-500 font-semibold">Log in</Text>
         </Link>
       </View>
     </KeyboardAvoidingView>
