@@ -28,6 +28,12 @@ export default function AuthRoutesLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="forget-password"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

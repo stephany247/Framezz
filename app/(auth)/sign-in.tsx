@@ -156,9 +156,14 @@ export default function Page() {
 
       {/* Password */}
       <View className="mb-6 gap-1">
+        <View className="flex-row justify-between items-center">
         <Text className="mb-1 text-lg font-medium text-gray-600 dark:text-gray-400">
           Password
         </Text>
+        <Link href="/forget-password">
+          <Text className="text-sky-500 text-sm mt-2">Forgot password?</Text>
+        </Link>
+        </View>
 
         <View className="relative">
           <TextInput
