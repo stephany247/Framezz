@@ -13,7 +13,7 @@ export default function SignInCTA({ className }: AppProps) {
 
   return (
     <Pressable
-      onPress={() => router.push("/(auth)/sign-in")}
+      onPress={() => router.push("/(auth)/sign-up")}
       className={`${btnStyles} ${className}`}
     >
       <Text className="text-white font-medium text-lg">Get started</Text>
