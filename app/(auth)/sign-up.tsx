@@ -168,16 +168,17 @@ export default function SignUpPage() {
           autoCapitalize="none"
         />
 
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <TouchableOpacity
-            onPress={onVerifyPress}
-            className="bg-sky-500 py-3 rounded-lg items-center"
-          >
+        <Pressable
+          onPress={onVerifyPress}
+          disabled={loading}
+          className="bg-sky-500 py-3 rounded-lg items-center"
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
             <Text className="text-white font-semibold">Verify</Text>
-          </TouchableOpacity>
-        )}
+          )}
+        </Pressable>
 
         <View className="h-3" />
 
@@ -295,21 +296,19 @@ export default function SignUpPage() {
         </View>
       </View>
 
-      {loading ? (
-        <Pressable className="bg-sky-500 py-3 rounded-lg items-center">
-          <ActivityIndicator />
-        </Pressable>
-      ) : (
-        <TouchableOpacity
-          onPress={onSignUpPress}
-          className="bg-sky-500 py-4 rounded-xl items-center"
-        >
+      <Pressable
+        onPress={onSignUpPress}
+        disabled={loading}
+        className="bg-sky-500 py-4 rounded-xl items-center"
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
           <Text className="text-white font-semibold text-xl uppercase">
             Sign up
           </Text>
-        </TouchableOpacity>
-      )}
-
+        )}
+      </Pressable>
 
       <View className="flex-row items-center gap-2 justify-center mt-2">
         <Text className="text-gray-600 dark:text-gray-400">
