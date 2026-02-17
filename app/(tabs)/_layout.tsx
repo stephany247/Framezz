@@ -1,16 +1,21 @@
-import React from "react";
-import { Tabs } from "expo-router";
-import { View, Pressable } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRouter } from "expo-router";
 import { Authenticated } from "convex/react";
+import { Tabs, usePathname, useRouter } from "expo-router";
+import React from "react";
+import { Pressable, useColorScheme, View } from "react-native";
 
-function UploadButton({ onPress }: { onPress?: () => void }) {
+function UploadButton({
+  onPress,
+  focused,
+}: {
+  onPress?: () => void;
+  focused?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
       style={{
-        top: -24,
+        top: -2,
         justifyContent: "center",
         alignItems: "center",
         elevation: 6,
@@ -18,8 +23,15 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
       accessibilityRole="button"
       accessibilityLabel="Create post"
     >
-      <View className="w-16 h-16 rounded-full bg-sky-500 justify-center items-center shadow-lg">
-        <Ionicons name="add" size={24} color="#fff" />
+      <View
+        className="w-12 h-12 rounded-full justify-center items-center shadow-lg"
+        style={{
+          backgroundColor: focused ? "#0ea5e9" : "transparent",
+          borderWidth: 1,
+          borderColor: focused ? "#0ea5e9" : "#fff",
+        }}
+      >
+        <Ionicons name="add" size={20} color="#fff" />
       </View>
     </Pressable>
   );
@@ -27,37 +39,43 @@ function UploadButton({ onPress }: { onPress?: () => void }) {
 
 export default function TabsLayout() {
   const router = useRouter();
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+  const pathname = usePathname();
+  const isCreateActive = pathname.includes("/create");
 
   return (
     <Authenticated>
       <Tabs
         screenOptions={{
-          headerShown: true,
+          headerShown: false,
           headerTitle: "Framez",
           headerTitleStyle: {
             fontWeight: "700",
             fontSize: 24,
             color: "#0ea5e9",
             fontFamily: "Lobster_400Regular",
+            marginBottom: 8,
           },
           headerStyle: {
-            backgroundColor: "#000",
+            backgroundColor: isDark ? "#030712" : "#fff",
             borderBottomWidth: 1,
-            borderBottomColor: "#374151",
+            borderBottomColor: isDark ? "#374151" : "#e5e7eb",
           },
           tabBarShowLabel: false,
           tabBarStyle: {
-            height: 64,
-            paddingBottom: 8,
-            backgroundColor: "#000",
-            borderTopColor: "#222",
+            height: 80,
+            paddingBottom: 10,
+            paddingTop: 10,
+            backgroundColor: isDark ? "#030712" : "#fff",
+            borderTopColor: isDark ? "#222" : "#e5e7eb",
           },
         }}
       >
         <Tabs.Screen
           name="feed"
           options={{
-            title: "Framez",
+            headerShown: false,
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name={focused ? "home" : "home-outline"}
@@ -71,8 +89,12 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="create"
           options={{
+            headerShown: true,
             tabBarButton: () => (
-              <UploadButton onPress={() => router.push("/(tabs)/create")} />
+              <UploadButton
+                onPress={() => router.push("/(tabs)/create")}
+                focused={isCreateActive}
+              />
             ),
           }}
         />
@@ -80,6 +102,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="profile"
           options={{
+            headerShown: true,
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name={focused ? "person-sharp" : "person-outline"}
