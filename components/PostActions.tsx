@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, useColorScheme } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 type Props = {
@@ -19,6 +19,9 @@ export default function PostActions({
   onOpenComments,
   commentsCount,
 }: Props) {
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+
   return (
     <View className="px-3 p-2 flex-row items-center justify-between">
       <View className="flex-row items-center gap-4">
@@ -30,7 +33,7 @@ export default function PostActions({
               <Ionicons
                 name="heart-outline"
                 size={24}
-                className="text-gray-700 dark:text-gray-300"
+                color={isDark ? "#d1d5db" : "#374151"}
               />
             )}
           </TouchableOpacity>
@@ -47,7 +50,7 @@ export default function PostActions({
             <Ionicons
               name="chatbubble-outline"
               size={24}
-              className="text-gray-700 dark:text-gray-300"
+              color={isDark ? "#d1d5db" : "#374151"}
             />
           </TouchableOpacity>
           <Text className="text-gray-700 dark:text-gray-300 text-lg font-medium">
