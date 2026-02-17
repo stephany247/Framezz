@@ -1,27 +1,29 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  FlatList,
-  ImageBackground,
-  TouchableOpacity,
-  Dimensions,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  Text,
-  FlatList as RNFlatList,
-  ViewToken,
-  Image,
-} from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { Media } from "@/utils/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Media } from "@/utils/types";
+import { useVideoPlayer, VideoView } from "expo-video";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  FlatList as RNFlatList,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+  ViewToken
+} from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
   const player = useVideoPlayer({ uri: url } as unknown as any as any);
   const [isPlaying, setIsPlaying] = useState(false);
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
 
   const [muted, setMuted] = useState(true); // start muted for autoplay
 
@@ -73,12 +75,16 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
       style={{
         width: SCREEN_WIDTH,
         height: SCREEN_WIDTH,
-        backgroundColor: "#111827",
+        backgroundColor: isDark ? "#111827" : "#f3f4f6",
       }}
     >
       <VideoView
         player={player}
-        style={{ width: "100%", height: "100%", backgroundColor: "#111827" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: isDark ? "#111827" : "#f3f4f6",
+        }}
       />
       {/* overlay unmute button (show only while muted) */}
       <TouchableOpacity
@@ -103,12 +109,14 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
 }
 
 function MediaImage({ url }: { url: string }) {
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
   return (
     <View
       style={{
         width: SCREEN_WIDTH,
         height: SCREEN_WIDTH,
-        backgroundColor: "#0f172a",
+        backgroundColor: isDark ? "#0f172a" : "#f3f4f6",
         alignItems: "center",
         justifyContent: "center",
         aspectRatio: "1",
@@ -137,6 +145,8 @@ export default function MediaCarousel({
   const listRef = useRef<RNFlatList<Media> | null>(null);
   const [index, setIndex] = useState(0);
   const [visibleIndex, setVisibleIndex] = useState<number>(0);
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
 
   // if initialIndex changes, scroll to it
   useEffect(() => {
@@ -162,7 +172,7 @@ export default function MediaCarousel({
         const newIndex = first.index ?? 0;
         setVisibleIndex(newIndex);
       }
-    }
+    },
   ).current;
 
   const viewabilityConfig = useRef({
@@ -175,28 +185,12 @@ export default function MediaCarousel({
         style={{
           width: "100%",
           aspectRatio: 1,
-          backgroundColor: "#111",
+          backgroundColor: isDark ? "#111827" : "#f3f4f6",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Text className="text-[#9CA3AF]">No media</Text>
-      </View>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <View
-        style={{
-          width: "100%",
-          aspectRatio: 1,
-          backgroundColor: "#111",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ color: "#9CA3AF" }}>No media</Text>
+        <Text className="text-gray-500 dark:text-gray-400">No media</Text>
       </View>
     );
   }
