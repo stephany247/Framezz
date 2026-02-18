@@ -7,9 +7,13 @@ import { Pressable, useColorScheme, View } from "react-native";
 function UploadButton({
   onPress,
   focused,
+  activeColor,
+  inactiveColor,
 }: {
   onPress?: () => void;
   focused?: boolean;
+  activeColor: string;
+  inactiveColor: string;
 }) {
   return (
     <Pressable
@@ -26,12 +30,16 @@ function UploadButton({
       <View
         className="w-12 h-12 rounded-full justify-center items-center shadow-lg"
         style={{
-          backgroundColor: focused ? "#0ea5e9" : "transparent",
+          backgroundColor: focused ? activeColor : "transparent",
+          borderColor: focused ? activeColor : inactiveColor,
           borderWidth: 1,
-          borderColor: focused ? "#0ea5e9" : "#fff",
         }}
       >
-        <Ionicons name="add" size={20} color="#fff" />
+        <Ionicons
+          name="add"
+          size={20}
+          color={focused ? "#fff" : inactiveColor}
+        />
       </View>
     </Pressable>
   );
@@ -43,6 +51,9 @@ export default function TabsLayout() {
   const isDark = scheme === "dark";
   const pathname = usePathname();
   const isCreateActive = pathname.includes("/create");
+
+  const activeColor = "#0ea5e9";
+  const inactiveColor = isDark ? "#e5e7eb" : "#374151";
 
   return (
     <Authenticated>
@@ -80,7 +91,7 @@ export default function TabsLayout() {
               <Ionicons
                 name={focused ? "home" : "home-outline"}
                 size={24}
-                color={focused ? "#0ea5e9" : "#fff"}
+                color={focused ? activeColor : inactiveColor}
               />
             ),
           }}
@@ -94,6 +105,8 @@ export default function TabsLayout() {
               <UploadButton
                 onPress={() => router.push("/(tabs)/create")}
                 focused={isCreateActive}
+                activeColor={activeColor}
+                inactiveColor={inactiveColor}
               />
             ),
           }}
@@ -107,7 +120,7 @@ export default function TabsLayout() {
               <Ionicons
                 name={focused ? "person-sharp" : "person-outline"}
                 size={24}
-                color={focused ? "#0ea5e9" : "#fff"}
+                color={focused ? activeColor : inactiveColor}
               />
             ),
           }}
