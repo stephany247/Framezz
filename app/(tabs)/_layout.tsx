@@ -101,6 +101,20 @@ export default function TabsLayout() {
           name="create"
           options={{
             headerShown: true,
+            headerTitle: "New Post",
+            headerTitleStyle: {
+              color: isDark ? "#e5e7eb" : "#374151",
+              fontWeight: "700",
+            },
+            headerLeft: () => (
+              <Ionicons
+                name="close"
+                size={30}
+                color={isDark ? "#e5e7eb" : "#374151"}
+                style={{ marginLeft: 16 }}
+                onPress={() => router.back()}
+              />
+            ),
             tabBarButton: () => (
               <UploadButton
                 onPress={() => router.push("/(tabs)/create")}
