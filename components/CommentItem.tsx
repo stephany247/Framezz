@@ -28,14 +28,14 @@ export default function CommentItem({
 
           <View className="flex-col gap-1 justify-start items-start">
             <View className="flex-row items-center gap-2">
-              <Text className="text-white font-bold text-lg">
+              <Text className="text-black dark:text-white font-bold text-lg">
                 {item.authorName ?? "Anonymous"}
               </Text>
-              <Text className="text-gray-300 text-sm">
+              <Text className="text-gray-500 dark:text-gray-300 text-sm">
                 {formatTime(item._creationTime)}
               </Text>
             </View>
-            <Text className="text-gray-100 mt-1">{item.text}</Text>
+            <Text className="text-gray-700 dark:text-gray-100 mt-1">{item.text}</Text>
           </View>
         </View>
 
