@@ -1,4 +1,3 @@
-// components/PostComposer.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -12,8 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Modal,
   Image as RNImage,
+  Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -22,6 +21,8 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { uploadToCloudinary } from "@/utils/upload";
 import CropSheet from "./CropSheet";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { router } from "expo-router";
 
 type MediaItem = { uri: string; originalUri?: string; kind: "image" | "video" };
 
@@ -33,6 +34,7 @@ export default function PostComposer() {
 
   const [cropModalVisible, setCropModalVisible] = useState(false);
   const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+  const [isSquare, setIsSquare] = useState(true);
 
   async function pickMedia() {
     try {
@@ -41,7 +43,7 @@ export default function PostComposer() {
       if (status !== "granted") {
         Alert.alert(
           "Permission required",
-          "We need access to your media library."
+          "We need access to your media library.",
         );
         return;
       }
@@ -73,13 +75,13 @@ export default function PostComposer() {
   }
 
   function getImageSize(
-    uri: string
+    uri: string,
   ): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
       RNImage.getSize(
         uri,
         (width, height) => resolve({ width, height }),
-        (err) => reject(err)
+        (err) => reject(err),
       );
     });
   }
@@ -97,7 +99,7 @@ export default function PostComposer() {
   async function cropImageAtIndex(
     index: number,
     ratioW: number,
-    ratioH: number
+    ratioH: number,
   ) {
     const item = mediaItems[index];
     if (!item || item.kind !== "image") {
@@ -132,7 +134,7 @@ export default function PostComposer() {
       const manipulated = await ImageManipulator.manipulateAsync(
         src,
         [{ crop: { originX, originY, width: cropWidth, height: cropHeight } }],
-        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG },
       );
 
       setMediaItems((prev) => {
@@ -174,6 +176,7 @@ export default function PostComposer() {
       setCaption("");
       setMediaItems([]);
       Alert.alert("Success", "Post created.");
+      router.replace("/(tabs)/feed");
     } catch (e) {
       console.error("submit error", e);
       Alert.alert("Failed to create post", String(e));
@@ -182,128 +185,172 @@ export default function PostComposer() {
     }
   }
 
+  const { width } = Dimensions.get("window");
+
+  function MediaVideo({ url }: { url: string }) {
+    const player = useVideoPlayer({ uri: url });
+
+    return (
+      <View
+        style={{
+          width,
+          height: width,
+          alignSelf: "center",
+        }}
+      >
+        <VideoView
+          player={player}
+          style={{ width, height: width }}
+          contentFit={isSquare ? "cover" : "contain"}
+        />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="w-full"
+      className="flex-1 bg-white dark:bg-gray-950"
     >
-      <View className="bg-gray-900 rounded-lg p-4">
-        <Text className="text-lg text-gray-100 mb-2">Post Caption</Text>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        className=""
+      >
+        {/* Media Preview */}
+        <View className="w-full bg-gray-300 dark:bg-gray-800">
+          {mediaItems.length === 0 ? (
+            <TouchableOpacity
+              onPress={pickMedia}
+              className="h-80 items-center justify-center"
+            >
+              <Ionicons name="image-outline" size={40} color="#9CA3AF" />
+              <Text className="text-gray-500 mt-2">Tap to add media</Text>
+            </TouchableOpacity>
+          ) : (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+            >
+              {mediaItems.map((m, idx) => (
+                <View key={idx} className="relative" style={{ width }}>
+                  {m.kind === "video" ? (
+                    <MediaVideo url={m.uri} />
+                  ) : (
+                    <Image
+                      source={{ uri: m.uri }}
+                      style={{
+                        width: "100%",
+                        height: width,
+                        resizeMode: isSquare ? "cover" : "contain",
+                      }}
+                    />
+                  )}
+                  <Pressable
+                    onPress={() => setIsSquare(!isSquare)}
+                    style={{
+                      position: "absolute",
+                      bottom: 8,
+                      left: 8,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      borderRadius: 20,
+                      padding: 4,
+                    }}
+                  >
+                    <Ionicons
+                      name={isSquare ? "resize" : "expand"}
+                      size={20}
+                      color="#fff"
+                    />
+                  </Pressable>
 
-        <TextInput
-          placeholder="Add a caption..."
-          placeholderTextColor="#9CA3AF"
-          value={caption}
-          onChangeText={setCaption}
-          multiline
-          numberOfLines={3}
-          className="bg-gray-700 text-white rounded-md p-3 mb-6"
-        />
+                  {m.kind === "image" && (
+                    <Pressable
+                      onPress={() => {
+                        setCropTargetIndex(idx);
+                        setCropModalVisible(true);
+                      }}
+                      style={{
+                        position: "absolute",
+                        bottom: 12,
+                        right: 12,
+                        backgroundColor: "rgba(0,0,0,0.6)",
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        borderRadius: 20,
+                      }}
+                    >
+                      <Ionicons name="crop" size={16} color="#fff" />
+                    </Pressable>
+                  )}
 
-        <View className="flex-row items-center justify-between mb-4">
+                  <Pressable
+                    onPress={() => removeMedia(idx)}
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      borderRadius: 20,
+                      padding: 4,
+                      zIndex: 5,
+                    }}
+                  >
+                    <Ionicons name="close" size={20} color="#fff" />
+                  </Pressable>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+
+        {/* Caption Section */}
+        <View className="px-4 py-4">
+          <TextInput
+            placeholder="Write a caption..."
+            placeholderTextColor="#9CA3AF"
+            value={caption}
+            onChangeText={setCaption}
+            multiline
+            className="text-base text-black dark:text-white"
+          />
+        </View>
+
+        {/* Add Media Button (subtle style) */}
+        <View className="border-t border-gray-200 dark:border-gray-800 px-4 py-4">
           <TouchableOpacity
             onPress={pickMedia}
-            activeOpacity={0.8}
-            className="flex-row items-center bg-sky-500 px-4 py-2 rounded-md"
+            className="flex-row items-center"
           >
-            <Ionicons name="images" size={18} color="#fff" />
-            <Text className="text-white ml-2">Add photo / video</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              setCaption("");
-              setMediaItems([]);
-            }}
-            activeOpacity={0.8}
-            className="flex-row items-center px-3 py-2"
-          >
-            <Ionicons name="trash-outline" size={18} color="#F87171" />
-            <Text className="text-red-400 ml-2">Clear</Text>
+            <Ionicons name="images-outline" size={22} color="#0ea5e9" />
+            <Text className="ml-3 text-base text-sky-500 font-medium">
+              Add Photo / Video
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-4"
-        >
-          {mediaItems.length === 0 ? (
-            <View className="w-full items-center justify-center py-8">
-              <Text className="text-gray-300 text-lg font-medium">
-                No media selected.
-              </Text>
-            </View>
-          ) : (
-            mediaItems.map((m, idx) => (
-              <View key={idx} className="mr-3">
-                <Image
-                  source={{ uri: m.uri }}
-                  className="w-32 h-32 rounded-md"
-                  style={{ resizeMode: "cover" }}
-                />
-
-                <Pressable
-                  onPress={() => removeMedia(idx)}
-                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1"
-                  style={{ zIndex: 2 }}
-                  accessibilityLabel="Remove media"
-                >
-                  <Ionicons name="close" size={14} color="#fff" />
-                </Pressable>
-
-                {m.kind === "image" && (
-                  <Pressable
-                    onPress={() => {
-                      setCropTargetIndex(idx);
-                      setCropModalVisible(true);
-                    }}
-                    className="absolute left-2 bottom-2 bg-black/60 rounded-full px-2 py-1 flex-row items-center"
-                  >
-                    <Ionicons name="crop" size={12} color="#fff" />
-                    <Text className="text-white text-xs ml-1">Crop</Text>
-                  </Pressable>
-                )}
-
-                {m.kind === "video" && (
-                  <View className="absolute left-2 bottom-2 bg-black/60 rounded-full px-2 py-1 flex-row items-center">
-                    <Ionicons name="videocam" size={12} color="#fff" />
-                    <Text className="text-white text-xs ml-1">Video</Text>
-                  </View>
-                )}
-              </View>
-            ))
-          )}
-        </ScrollView>
-
-        <View className="flex-row items-center justify-end mt-2">
+        {/* Post Button */}
+        <View className="px-4 mt-6">
           <Pressable
             onPress={submit}
             disabled={uploading}
-            className={`flex-row items-center px-4 py-2 rounded-md ${uploading ? "bg-gray-700" : "bg-sky-500"}`}
+            className={`py-3 rounded-xl items-center ${
+              uploading ? "bg-gray-400" : "bg-sky-500"
+            }`}
           >
             {uploading ? (
-              <View>
-                <ActivityIndicator
-                  size="small"
-                  color=" #0ea5e9"
-                  className="mr-2"
-                />
-              </View>
+              <ActivityIndicator color="#fff" />
             ) : (
-              <Ionicons
-                name="cloud-upload"
-                size={16}
-                color="#fff"
-                className="mr-2"
-              />
+              <View className="flex-row items-center">
+                <Ionicons name="send" size={18} color="#fff" />
+                <Text className="text-white font-semibold text-lg ml-2">
+                  Share Post
+                </Text>
+              </View>
             )}
-            <Text className="text-white font-semibold">
-              {uploading ? "Posting..." : "Post"}
-            </Text>
           </Pressable>
         </View>
-
         {/* Crop modal */}
         <CropSheet
           visible={cropModalVisible}
@@ -326,7 +373,7 @@ export default function PostComposer() {
             setCropTargetIndex(null);
           }}
         />
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
