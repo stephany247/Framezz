@@ -156,7 +156,7 @@ export default function PostCard({
     : [];
 
   return (
-    <View className="mb-4 overflow-hidden">
+    <View className="mb-4 overflow-hidden bg-white dark:bg-gray-950">
       <PostHeader post={post} />
       <MediaCarousel media={post.media} />
       <PostActions

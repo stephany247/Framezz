@@ -44,7 +44,6 @@ export default function Feed() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-white dark:bg-gray-950">
         <ActivityIndicator color="#0ea5e9" size="large" />
-        <Text className="text-gray-400 mt-2">Loading feed…</Text>
       </SafeAreaView>
     );
   }
