@@ -7,7 +7,7 @@ import { mutation, query } from "./_generated/server";
  */
 export const createPost = mutation({
   args: {
-    media: v.array(v.object({ url: v.string(), kind: v.string() })), // kind: "image" | "video"
+    media: v.array(v.object({ url: v.string(), kind: v.string(), aspectRatio: v.optional(v.number()) })), // kind: "image" | "video"
     caption: v.optional(v.string()),
   },
   handler: async (ctx, { media, caption }) => {
@@ -32,8 +32,8 @@ export const createPost = mutation({
     return await ctx.db.insert("posts", {
       author: user._id,
       authorName: user.username ?? user.name ?? "Anonymous",
-    //   authorProfileImage: user.profileImage ?? null,
-    authorProfileImage,
+      //   authorProfileImage: user.profileImage ?? null,
+      authorProfileImage,
       media,
       caption: caption ?? undefined,
     });

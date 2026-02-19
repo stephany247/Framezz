@@ -24,7 +24,12 @@ import CropSheet from "./CropSheet";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { router } from "expo-router";
 
-type MediaItem = { uri: string; originalUri?: string; kind: "image" | "video" };
+type MediaItem = {
+  uri: string;
+  originalUri?: string;
+  kind: "image" | "video";
+  aspectRatio?: number;
+};
 
 export default function PostComposer() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -163,13 +168,18 @@ export default function PostComposer() {
 
     setUploading(true);
     try {
-      const media: { url: string; kind: "image" | "video" }[] = [];
+      const media: {
+        url: string;
+        kind: "image" | "video";
+        aspectRatio?: number;
+      }[] = [];
       for (const item of mediaItems) {
         const normalized = item.uri.startsWith("file://")
           ? item.uri
           : `file://${item.uri}`;
         const url = await uploadToCloudinary(normalized);
-        media.push({ url, kind: item.kind });
+
+        media.push({ url, kind: item.kind, aspectRatio: item.aspectRatio });
       }
 
       await createPost({ media, caption: caption || undefined });
@@ -363,6 +373,14 @@ export default function PostComposer() {
               return;
             }
             cropImageAtIndex(cropTargetIndex, w, h);
+            setMediaItems((prev) => {
+              const copy = [...prev];
+              copy[cropTargetIndex!] = {
+                ...copy[cropTargetIndex!],
+                aspectRatio: w / h,
+              };
+              return copy;
+            });
           }}
           onReset={() => {
             if (cropTargetIndex !== null) {

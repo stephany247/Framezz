@@ -21,6 +21,7 @@ export default defineSchema({
     media: v.array(v.object({
       url: v.string(),
       kind: v.string(), // "image" or "video"
+      aspectRatio: v.optional(v.number()),
     })),
 
     // optional caption, but a post MUST have at least one media item (validated server-side)

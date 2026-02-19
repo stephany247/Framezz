@@ -108,18 +108,23 @@ function MediaVideo({ url, playing }: { url: string; playing: boolean }) {
   );
 }
 
-function MediaImage({ url }: { url: string }) {
+function MediaImage({
+  url,
+  aspectRatio = 1,
+}: {
+  url: string;
+  aspectRatio?: number;
+}) {
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
   return (
     <View
       style={{
         width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH,
+        aspectRatio: aspectRatio,
         backgroundColor: isDark ? "#0f172a" : "#f3f4f6",
         alignItems: "center",
         justifyContent: "center",
-        aspectRatio: "1",
       }}
     >
       <ImageBackground
@@ -128,7 +133,7 @@ function MediaImage({ url }: { url: string }) {
           width: SCREEN_WIDTH,
           height: SCREEN_WIDTH,
         }}
-        imageStyle={{ resizeMode: "contain" }}
+        imageStyle={{ resizeMode: "cover" }}
       />
     </View>
   );
@@ -208,7 +213,7 @@ export default function MediaCarousel({
           item.kind === "video" ? (
             <MediaVideo url={item.url} playing={visibleIndex === itemIndex} />
           ) : (
-            <MediaImage url={item.url} />
+            <MediaImage url={item.url}  aspectRatio={item.aspectRatio} />
           )
         }
         onScroll={onScroll}

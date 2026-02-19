@@ -1,4 +1,3 @@
-// components/CropSheet.tsx
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import {
@@ -51,7 +50,6 @@ export default function CropSheet({
               className="py-3"
               accessibilityRole="button"
             >
-              {/* <Text className="text-gray-600 dark:text-gray-300">Cancel</Text> */}
               <Ionicons
                 name="close-circle-outline"
                 size={24}

@@ -23,4 +23,4 @@ export type Comment = {
 
 export type LikeItem = { userId: string; likeId?: string; profileImage?: string; username?: string; likedAt?: number | string };
 
-export type Media = { kind: string; url: string; poster?: string };
+export type Media = { kind: string; url: string; poster?: string; aspectRatio?: number; };
