@@ -21,6 +21,13 @@ export default function Feed() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const lastOffset = useRef(0);
   const [hidden, setHidden] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await new Promise((r) => setTimeout(r, 800)); // small delay
+    setRefreshing(false);
+  };
 
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
@@ -83,6 +90,9 @@ export default function Feed() {
         renderItem={({ item }) => (
           <PostCard post={item} currentUserId={currentUserId} />
         )}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        progressViewOffset={30}
       />
     </SafeAreaView>
   );
