@@ -255,7 +255,7 @@ export default function PostComposer() {
                       left: 8,
                       backgroundColor: "rgba(0,0,0,0.6)",
                       borderRadius: 20,
-                      padding: 4,
+                      padding: 6,
                     }}
                   >
                     <Ionicons
@@ -273,15 +273,14 @@ export default function PostComposer() {
                       }}
                       style={{
                         position: "absolute",
-                        bottom: 12,
-                        right: 12,
+                        bottom: 48,
+                        left: 6,
                         backgroundColor: "rgba(0,0,0,0.6)",
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
+                        padding: 6,
                         borderRadius: 20,
                       }}
                     >
-                      <Ionicons name="crop" size={16} color="#fff" />
+                      <Ionicons name="crop" size={20} color="#fff" />
                     </Pressable>
                   )}
 
