@@ -1,6 +1,7 @@
 // components/CropSheet.tsx
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
-import { Modal, View, Text, TouchableOpacity } from "react-native";
+import { Modal, View, Text, TouchableOpacity, useColorScheme } from "react-native";
 
 type CropOption = { label: string; w: number; h: number };
 
@@ -21,6 +22,8 @@ export default function CropSheet({
   onSelect: (w: number, h: number) => void;
   onReset?: () => void;
 }) {
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
   return (
     <Modal
       visible={visible}
@@ -28,11 +31,19 @@ export default function CropSheet({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end bg-[rgba(0,0,0,0.4)]">
-        <View className="bg-[#071012] p-4 rounded-t-xl">
-          <Text className="text-white mb-3 text-lg font-semibold border-b border-gray-700 pb-2">
-            Choose crop
-          </Text>
+      <View className="flex-1 justify-end">
+        <View className=" bg-gray-50 dark:bg-gray-900 text-lg p-4 rounded-t-xl">
+          <View className="flex-row justify-between items-center border-b border-gray-700 mb-3">
+            <Text className="text-gray-800 dark:text-gray-300 text-lg font-semibold">Choose crop</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="py-3"
+              accessibilityRole="button"
+            >
+              {/* <Text className="text-gray-600 dark:text-gray-300">Cancel</Text> */}
+              <Ionicons name="close-circle-outline" size={24}  color={isDark ? "#e5e7eb" : "#374151"} />
+            </TouchableOpacity>
+          </View>
 
           {OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -41,7 +52,7 @@ export default function CropSheet({
               className="py-3"
               accessibilityRole="button"
             >
-              <Text className="text-white">{opt.label}</Text>
+              <Text className=" text-gray-800 dark:text-gray-300">{opt.label}</Text>
             </TouchableOpacity>
           ))}
 
@@ -51,16 +62,18 @@ export default function CropSheet({
               className="py-3"
               accessibilityRole="button"
             >
-              <Text className="text-amber-400">Reset to original</Text>
+              <Text className="text-amber-500">Reset to original</Text>
             </TouchableOpacity>
           ) : null}
 
           <TouchableOpacity
             onPress={onClose}
-            className="py-3"
+            className="py-3 mb-3"
             accessibilityRole="button"
           >
-            <Text className="text-gray-400">Cancel</Text>
+            <Text className="text-white text-center font-medium text-lg bg-sky-500 p-4 rounded-full">
+              Cancel
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
